@@ -170,8 +170,6 @@ curl -X "POST" "http://localhost:8080/v1/loans/return" \
 
 ## Documentation
 
-- [Database](https://dbdocs.io/luigiazevedo97/public_library_v2)
-
 ## Dependencies
 
 - [Testify](https://github.com/stretchr/testify) - Tools for code testing

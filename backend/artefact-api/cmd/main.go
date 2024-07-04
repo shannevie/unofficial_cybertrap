@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,10 +15,10 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/LuigiAzevedo/public-library-v2/config"
-	r "github.com/LuigiAzevedo/public-library-v2/internal/database/repository"
-	handler "github.com/LuigiAzevedo/public-library-v2/internal/delivery/http"
-	u "github.com/LuigiAzevedo/public-library-v2/internal/domain/usecase"
+	"github.com/shannevie/unofficial_cybertrap/config"
+	handler "github.com/shannevie/unofficial_cybertrap/internal/delivery/http"
+	r "github.com/shannevie/unofficial_cybertrap/internal/repository"
+	s "github.com/shannevie/unofficial_cybertrap/internal/service"
 )
 
 func main() {
@@ -29,16 +28,11 @@ func main() {
 		log.Fatal().Err(err).Msg("unable to load configurations")
 	}
 
-	// starts db connection
-	db, err := setupDB(config.DbDriver, config.DbURL)
-	if err != nil {
-		log.Fatal().Err(err).Msg("unable to connect to the database")
-	}
-	defer db.Close()
-
 	// configurations for the logger middleware
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	httplog.Configure(httplog.Options{Concise: true, TimeFieldFormat: time.DateTime})
+
+	// Prepare db or external connections
 
 	router := chi.NewRouter()
 
@@ -50,21 +44,20 @@ func main() {
 	router.Use(middleware.Recoverer)
 
 	// repositories DI
-	userRepo := r.NewUserRepository(db)
-	bookRepo := r.NewBookRepository(db)
-	loanRepo := r.NewLoanRepository(db)
+	artefactRepo := r.NewArtefactRepository()
 
-	// usecase DI
-	userUC := u.NewUserUseCase(userRepo)
-	bookUC := u.NewBookUseCase(bookRepo)
-	loanUC := u.NewLoanUseCase(loanRepo, userRepo, bookRepo)
+	// service DI
+	artefactService := s.NewArtefactService(artefactRepo)
 
 	// HTTP handlers
-	handler.NewBookHandler(router, bookUC)
-	handler.NewUserHandler(router, userUC)
-	handler.NewLoanHandler(router, loanUC)
+	handler.NewArtefactHandler(router, *artefactService)
 
-	server := newServer(config.ServeAddress, router)
+	// Start the server
+	server := &http.Server{
+		Addr:    config.ServeAddress,
+		Handler: router,
+	}
+
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatal().Err(err).Msg("failed to start server")
@@ -86,28 +79,5 @@ func waitForShutdown(server *http.Server) {
 
 	if err := server.Shutdown(ctx); err != nil {
 		log.Fatal().Err(err).Msg("failed to gracefully shut down server")
-	}
-}
-
-// setupDB initiates the database connection
-func setupDB(driver, url string) (*sql.DB, error) {
-	db, err := sql.Open(driver, url)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := db.Ping(); err != nil {
-		db.Close()
-		return nil, err
-	}
-
-	return db, nil
-}
-
-// newServer initiates a http server
-func newServer(addr string, r *chi.Mux) *http.Server {
-	return &http.Server{
-		Addr:    addr,
-		Handler: r,
 	}
 }
