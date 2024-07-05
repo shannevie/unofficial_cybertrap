@@ -2,10 +2,8 @@ package service
 
 import "errors"
 
-// Use Case Errors
+// Service Errors
 var (
-	ErrBookNotFound        = errors.New("book not found")
-	ErrBookUnavailable     = errors.New("book unavailable at the moment")
-	ErrLoanAlreadyReturned = errors.New("loan does't exists or already returned")
-	ErrReturnBookFirst     = errors.New("return the book first before borrowing it again")
+	ErrInvalidFileType = errors.New("Invalid file type, only .yml, .yaml, .json are accepted")
+	ErrReadingFile     = errors.New("Error reading file")
 )

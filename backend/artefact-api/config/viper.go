@@ -7,9 +7,11 @@ import (
 )
 
 type AppConfig struct {
-	DbURL        string `mapstructure:"DB_URL"`
-	DbDriver     string `mapstructure:"DB_DRIVER"`
+	// Server configs
 	ServeAddress string `mapstructure:"SERVE_ADDRESS"`
+
+	// Aws S3
+	BucketName string `mapstructure:"BUCKET_NAME"`
 }
 
 func LoadAppConfig(path string) (AppConfig, error) {
@@ -18,7 +20,7 @@ func LoadAppConfig(path string) (AppConfig, error) {
 	}
 
 	viper.AddConfigPath(path)
-	viper.SetConfigName("app")
+	viper.SetConfigName(".env")
 	viper.SetConfigType("env")
 	viper.AutomaticEnv()
 

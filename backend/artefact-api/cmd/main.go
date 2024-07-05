@@ -52,7 +52,7 @@ func main() {
 	router.Use(middleware.Recoverer)
 
 	// repositories DI
-	artefactRepo := r.NewArtefactRepository(s3Client)
+	artefactRepo := r.NewArtefactRepository(s3Client, appConfig.BucketName)
 
 	// service DI
 	artefactService := s.NewArtefactService(artefactRepo)
@@ -71,6 +71,8 @@ func main() {
 			log.Fatal().Err(err).Msg("failed to start server")
 		}
 	}()
+
+	log.Info().Str("address", appConfig.ServeAddress).Msg("Server started successfully")
 
 	// graceful shutdown
 	waitForShutdown(server)
