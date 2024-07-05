@@ -15,27 +15,35 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/shannevie/unofficial_cybertrap/config"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	appConfig "github.com/shannevie/unofficial_cybertrap/config"
 	handler "github.com/shannevie/unofficial_cybertrap/internal/delivery/http"
 	r "github.com/shannevie/unofficial_cybertrap/internal/repository"
 	s "github.com/shannevie/unofficial_cybertrap/internal/service"
 )
 
 func main() {
+	// Start logger
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	httplog.Configure(httplog.Options{Concise: true, TimeFieldFormat: time.DateTime})
+
 	// load env configurations
-	config, err := config.LoadAppConfig(".")
+	appConfig, err := appConfig.LoadAppConfig(".")
 	if err != nil {
 		log.Fatal().Err(err).Msg("unable to load configurations")
 	}
 
-	// configurations for the logger middleware
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	httplog.Configure(httplog.Options{Concise: true, TimeFieldFormat: time.DateTime})
+	// Prepare external services such as db, cache, etc.
+	// AWS Setup
+	awsCfg, err := awsConfig.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to load AWS configuration, please check your AWS credentials")
+	}
+	s3Client := s3.NewFromConfig(awsCfg)
 
-	// Prepare db or external connections
-
+	// Create router and setup middlewares
 	router := chi.NewRouter()
-
 	// middleware
 	router.Use(httplog.RequestLogger(log.Logger))
 	router.Use(middleware.Timeout(60 * time.Second))
@@ -44,7 +52,7 @@ func main() {
 	router.Use(middleware.Recoverer)
 
 	// repositories DI
-	artefactRepo := r.NewArtefactRepository()
+	artefactRepo := r.NewArtefactRepository(s3Client)
 
 	// service DI
 	artefactService := s.NewArtefactService(artefactRepo)
@@ -54,7 +62,7 @@ func main() {
 
 	// Start the server
 	server := &http.Server{
-		Addr:    config.ServeAddress,
+		Addr:    appConfig.ServeAddress,
 		Handler: router,
 	}
 
