@@ -16,6 +16,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	appConfig "github.com/shannevie/unofficial_cybertrap/config"
 	handler "github.com/shannevie/unofficial_cybertrap/internal/delivery/http"
@@ -36,7 +37,9 @@ func main() {
 
 	// Prepare external services such as db, cache, etc.
 	// AWS Setup
-	awsCfg, err := awsConfig.LoadDefaultConfig(context.TODO())
+	awsCfg, err := awsConfig.LoadDefaultConfig(context.TODO(), awsConfig.WithCredentialsProvider(
+		credentials.NewStaticCredentialsProvider(appConfig.AwsAccessKeyId, appConfig.AwsSecretAccessKey, ""),
+	))
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to load AWS configuration, please check your AWS credentials")
 	}

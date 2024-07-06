@@ -20,10 +20,7 @@ func NewArtefactHandler(r *chi.Mux, service s.ArtefactService) {
 	}
 
 	r.Route("/v1/artefact", func(r chi.Router) {
-		// r.Get("/{id}", handler.GetUser)
 		r.Post("/upload", handler.UploadArtefact)
-		// r.Put("/{id}", handler.UpdateUser)
-		// r.Delete("/{id}", handler.DeleteUser)
 	})
 }
 
