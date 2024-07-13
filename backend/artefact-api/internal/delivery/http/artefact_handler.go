@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi"
 
-	s "github.com/shannevie/unofficial_cybertrap/internal/service"
+	s "github.com/shannevie/unofficial_cybertrap/backend/artefact-api/internal/service"
 )
 
 type ArtefactHandler struct {

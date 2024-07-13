@@ -7,7 +7,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	r "github.com/shannevie/unofficial_cybertrap/internal/repository"
+	r "github.com/shannevie/unofficial_cybertrap/backend/artefact-api/internal/repository"
 )
 
 type ArtefactService struct {

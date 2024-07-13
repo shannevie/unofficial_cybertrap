@@ -18,10 +18,10 @@ import (
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	appConfig "github.com/shannevie/unofficial_cybertrap/config"
-	handler "github.com/shannevie/unofficial_cybertrap/internal/delivery/http"
-	r "github.com/shannevie/unofficial_cybertrap/internal/repository"
-	s "github.com/shannevie/unofficial_cybertrap/internal/service"
+	appConfig "github.com/shannevie/unofficial_cybertrap/backend/artefact-api/config"
+	handler "github.com/shannevie/unofficial_cybertrap/backend/artefact-api/internal/delivery/http"
+	r "github.com/shannevie/unofficial_cybertrap/backend/artefact-api/internal/repository"
+	s "github.com/shannevie/unofficial_cybertrap/backend/artefact-api/internal/service"
 )
 
 func main() {
