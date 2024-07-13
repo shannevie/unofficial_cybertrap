@@ -9,6 +9,15 @@ services:
       - "3000:3000"
     networks:
       - api-network
+  
+  domains-api:
+    build:
+      context: ./domains-api
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    networks:
+      - api-network
 
 networks:
   api-network:
