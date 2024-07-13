@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  artefact-api:
+    build:
+      context: ./artefact-api
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - api-network
+
+networks:
+  api-network:
+    driver: bridge
