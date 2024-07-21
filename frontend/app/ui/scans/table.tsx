@@ -19,7 +19,7 @@ export default async function ScansTable({
     
     const router = useRouter();
     const handleViewDetails = (target: string) => {
-      router.push(`/result/${encodeURIComponent(target)}`);  // Redirect to the target detail page
+      router.push(`/dashboard/scans/${encodeURIComponent(target)}`);  // Redirect to the target detail page
     };
 
     const scans = [
