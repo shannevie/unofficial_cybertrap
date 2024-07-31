@@ -325,5 +325,6 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/projectdiscovery/nuclei/v3 v3.3.0
+	github.com/rabbitmq/amqp091-go v1.10.0
 	golang.org/x/sys v0.21.0 // indirect
 )
