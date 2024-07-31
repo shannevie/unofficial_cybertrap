@@ -32,6 +32,8 @@ func NewRabbitMQClient(amqpURL string, logger zerolog.Logger) (*RabbitMQClient, 
 	}, nil
 }
 
+// This will define the exchange and queue for the mq that we will use
+// in the nuclei scanner and domains_api
 func (r *RabbitMQClient) DeclareExchangeAndQueue() error {
 	err := r.channel.ExchangeDeclare(
 		"nuclei_scans", // name
