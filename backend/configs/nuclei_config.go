@@ -9,6 +9,8 @@ import (
 type NucleiConfig struct {
 	// Server configs
 	RabbitMqUrl string `mapstructure:"RabbitMqUrl"`
+	MongoDbUri  string `mapstructure:"MONGO_DB_URI"`
+	MongoDbName string `mapstructure:"MONGO_DB_NAME"`
 }
 
 func LoadNucleiConfig(path string) (NucleiConfig, error) {
