@@ -1,6 +1,9 @@
+"use client";
+
 // import { UpdateInvoice, DeleteInvoice } from '@/app/ui/invoices/buttons';
 import { formatDateToLocal } from '@/app/lib/utils';
 import { fetchFilteredInvoices } from '@/app/lib/data';
+import { useRouter } from 'next/navigation';
 
 export default async function TargetsTable({
   query,
@@ -10,6 +13,11 @@ export default async function TargetsTable({
   currentPage: number;
 }) {
   //const targets = await fetchFilteredInvoices(query, currentPage);
+
+  const router = useRouter();
+  const handleViewDetails = (target: string) => {
+    router.push(`/dashboard/scans/${encodeURIComponent(target)}`);  // Redirect to the target detail page
+  };
 
   const targets = [
     {
@@ -118,7 +126,11 @@ export default async function TargetsTable({
                     {formatDateToLocal(target.lastScanned)}
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
-                        Target Summary / Initiate Scan 
+                        <button
+                          onClick={() => handleViewDetails(targets.target)}
+                          className="bg-blue-500 text-white px-4 py-2 rounded">
+                            Target Summary / Initiate Scan 
+                        </button>
                       {/* <UpdateInvoice id={target.id} />
                       <DeleteInvoice id={target.id} /> */}
                   </td>
