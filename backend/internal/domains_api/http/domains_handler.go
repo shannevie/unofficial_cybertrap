@@ -14,7 +14,7 @@ type DomainsHandler struct {
 }
 
 // NewUserHandler creates a new instance of userHandler
-func NewArtefactHandler(r *chi.Mux, service s.DomainsService) {
+func NewDomainsHandler(r *chi.Mux, service s.DomainsService) {
 	handler := &DomainsHandler{
 		DomainsService: service,
 	}

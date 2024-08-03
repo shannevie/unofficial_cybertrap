@@ -14,6 +14,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -30,7 +32,7 @@ func main() {
 	httplog.Configure(httplog.Options{Concise: true, TimeFieldFormat: time.DateTime})
 
 	// load env configurations
-	appConfig, err := appConfig.LoadArtefactConfig(".")
+	appConfig, err := appConfig.LoadDomainsConfig(".")
 	if err != nil {
 		log.Fatal().Err(err).Msg("unable to load configurations")
 	}
@@ -45,6 +47,13 @@ func main() {
 	}
 	s3Client := s3.NewFromConfig(awsCfg)
 
+	// Setup mongodb
+	clientOpts := options.Client().ApplyURI(appConfig.MongoDbUri)
+	mongoClient, err := mongo.Connect(context.Background(), clientOpts)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to connect to MongoDB")
+	}
+
 	// Create router and setup middlewares
 	router := chi.NewRouter()
 	// middleware
@@ -55,13 +64,13 @@ func main() {
 	router.Use(middleware.Recoverer)
 
 	// repositories DI
-	artefactRepo := r.NewDomainsRepository(s3Client, appConfig.BucketName)
+	domainsRepo := r.NewDomainsRepository(s3Client, appConfig.BucketName, mongoClient, appConfig.MongoDbName)
 
 	// service DI
-	artefactService := s.NewDomainsService(artefactRepo)
+	domainsService := s.NewDomainsService(domainsRepo)
 
 	// HTTP handlers
-	handler.NewArtefactHandler(router, *artefactService)
+	handler.NewDomainsHandler(router, *domainsService)
 
 	// Start the server
 	server := &http.Server{

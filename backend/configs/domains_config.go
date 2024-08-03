@@ -10,11 +10,14 @@ type DomainsConfig struct {
 	// Server configs
 	ServeAddress string `mapstructure:"SERVE_ADDRESS"`
 
+	// Aws S3
 	AwsAccessKeyId     string `mapstructure:"AWS_ACCESS_KEY_ID"`
 	AwsSecretAccessKey string `mapstructure:"AWS_SECRET_ACCESS_KEY"`
-
-	// Aws S3
 	BucketName string `mapstructure:"BUCKET_NAME"`
+
+	// MongoDB related configs
+	MongoDbUri  string `mapstructure:"MONGO_DB_URI"`
+	MongoDbName string `mapstructure:"MONGO_DB_NAME"`
 }
 
 func LoadDomainsConfig(path string) (DomainsConfig, error) {

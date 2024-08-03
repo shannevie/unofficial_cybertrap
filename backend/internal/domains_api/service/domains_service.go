@@ -11,11 +11,11 @@ import (
 )
 
 type DomainsService struct {
-	artefactRepo *r.ArtefactRepository
+	artefactRepo *r.DomainsRepository
 }
 
 // NewUserUseCase creates a new instance of userUseCase
-func NewDomainsService(repository *r.ArtefactRepository) *DomainsService {
+func NewDomainsService(repository *r.DomainsRepository) *DomainsService {
 	return &DomainsService{
 		artefactRepo: repository,
 	}
