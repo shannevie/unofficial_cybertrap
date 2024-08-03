@@ -1,13 +1,15 @@
 version: '3.8'
 
+# TODO: Fix the env issues 
 services:
   domains_api:
     build: .
     command: ["/bin/domains_api"]
     ports:
       - "3000:3000"
-    environment:
-      - todo
+    env_file:
+      - ./.env.domains
+    
 
   # artefacts_api:
   #   build: .

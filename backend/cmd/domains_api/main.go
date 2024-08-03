@@ -37,6 +37,8 @@ func main() {
 		log.Fatal().Err(err).Msg("unable to load configurations")
 	}
 
+	log.Info().Msg("appConfig mongo uri: " + appConfig.MongoDbUri)
+
 	// Prepare external services such as db, cache, etc.
 	// AWS Setup
 	awsCfg, err := awsConfig.LoadDefaultConfig(context.TODO(), awsConfig.WithCredentialsProvider(

@@ -13,7 +13,7 @@ type DomainsConfig struct {
 	// Aws S3
 	AwsAccessKeyId     string `mapstructure:"AWS_ACCESS_KEY_ID"`
 	AwsSecretAccessKey string `mapstructure:"AWS_SECRET_ACCESS_KEY"`
-	BucketName string `mapstructure:"BUCKET_NAME"`
+	BucketName         string `mapstructure:"BUCKET_NAME"`
 
 	// MongoDB related configs
 	MongoDbUri  string `mapstructure:"MONGO_DB_URI"`

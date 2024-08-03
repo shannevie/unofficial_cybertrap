@@ -31,6 +31,3 @@ COPY --from=builder /bin/domains_api /bin/domains_api
 
 # COPY --from=builder /bin/artefacts_api /bin/artefacts_api
 # COPY --from=builder /bin/nuclei_scanner /bin/nuclei_scanner
-
-# Default command
-CMD ["sh"]
