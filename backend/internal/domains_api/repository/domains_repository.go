@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
+	"github.com/shannevie/unofficial_cybertrap/backend/models"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -25,6 +26,23 @@ func NewDomainsRepository(s3Client *s3.Client, bucketName string, mongoClient *m
 		mongoClient: mongoClient,
 		mongoDbName: mongoDbName,
 	}
+}
+
+// InsertDomains inserts multiple domains into the MongoDB collection
+func (r *DomainsRepository) InsertDomains(domains []models.Domain) error {
+	collection := r.mongoClient.Database(r.mongoDbName).Collection("domains")
+	var documents []interface{}
+	for _, domain := range domains {
+		documents = append(documents, domain)
+	}
+
+	_, err := collection.InsertMany(context.Background(), documents)
+	if err != nil {
+		log.Error().Err(err).Msg("Error inserting domains into MongoDB")
+		return err
+	}
+
+	return nil
 }
 
 // Uploads to S3 repository

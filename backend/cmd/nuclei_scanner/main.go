@@ -80,6 +80,7 @@ func main() {
 			// Fetch template and domain from MongoDB
 			templateID, _ := primitive.ObjectIDFromHex(scanMsg.TemplateID)
 			template, err := repo.FindTemplateByID(context.Background(), templateID)
+			// Download TODO: the template using the s3 url
 
 			if err != nil {
 				log.Error().Err(err).Msg("Failed to find template by ID")

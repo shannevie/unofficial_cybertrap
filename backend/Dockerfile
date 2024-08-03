@@ -1,5 +1,5 @@
 # Start from the official Golang base image
-FROM golang:1.22.5-alpine
+FROM golang:1.22.5-alpine as builder
 
 # Set the current working directory inside the container
 WORKDIR /app
@@ -13,17 +13,24 @@ RUN go mod download
 # Copy the entire project to the container
 COPY . .
 
-# Set the working directory to where your main.go file is located
-WORKDIR /app/cmd
+# Set the working directory to where your main.go file is located for each service
+# Build the domains_api binary
+RUN go build -o /bin/domains_api ./cmd/domains_api
 
-# Build the Go application
-RUN go build -o /app/main .
+# Build the artefacts_api binary
+# RUN go build -o /bin/artefacts_api ./cmd/artefacts_api
 
-# Set the working directory to the app root again
-WORKDIR /app
+# Build the nuclei_scanner binary
+# RUN go build -o /bin/nuclei_scanner ./cmd/nuclei_scanner
 
-# Expose port 8080 to the outside world
-EXPOSE 8080
+# Create a minimal runtime image
+FROM alpine:latest
 
-# Command to run the executable
-CMD ["./main"]
+# Copy binaries from the builder stage
+COPY --from=builder /bin/domains_api /bin/domains_api
+
+# COPY --from=builder /bin/artefacts_api /bin/artefacts_api
+# COPY --from=builder /bin/nuclei_scanner /bin/nuclei_scanner
+
+# Default command
+CMD ["sh"]

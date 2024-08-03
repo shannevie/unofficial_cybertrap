@@ -19,9 +19,33 @@ func NewDomainsHandler(r *chi.Mux, service s.DomainsService) {
 		DomainsService: service,
 	}
 
-	r.Route("/v1/artefact", func(r chi.Router) {
-		r.Post("/upload", handler.ScanDomains)
+	r.Route("/v1/domains", func(r chi.Router) {
+		r.Post("/upload-txt", handler.UploadDomainsTxt)
+		// r.Post("/upload", handler.ScanDomains)
 	})
+}
+
+func (h *DomainsHandler) UploadDomainsTxt(w http.ResponseWriter, r *http.Request) {
+	// Parse the multipart form in the request
+	err := r.ParseMultipartForm(10 << 20) // 10MB
+	if err != nil {
+		http.Error(w, "Unable to parse form", http.StatusBadRequest)
+		return
+	}
+
+	// Retrieve the file from form data
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	err = h.DomainsService.ProcessDomainsFile(file)
+	if err != nil {
+		http.Error(w, "Error processing file", http.StatusInternalServerError)
+		return
+	}
 }
 
 // TODO: Change to scan domains
