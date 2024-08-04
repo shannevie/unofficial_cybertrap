@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
 	"github.com/shannevie/unofficial_cybertrap/backend/models"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -48,6 +49,7 @@ func (r *TemplatesRepository) UploadToS3(file multipart.File, filename string) (
 	return result.Location, nil
 }
 
+// UploadToMongo inserts a template into MongoDB
 func (r *TemplatesRepository) UploadToMongo(template *models.Template) (string, error) {
 	collection := r.mongoClient.Database(r.mongoDbName).Collection(r.collectionName)
 	result, err := collection.InsertOne(context.Background(), template)
@@ -57,6 +59,11 @@ func (r *TemplatesRepository) UploadToMongo(template *models.Template) (string, 
 		return "", err
 	}
 
-	return result.InsertedID.(string), nil
+	insertedID, ok := result.InsertedID.(primitive.ObjectID)
+	if !ok {
+		log.Error().Msg("Failed to convert inserted ID to ObjectID")
+		return "", err
+	}
 
+	return insertedID.Hex(), nil
 }

@@ -21,7 +21,6 @@ func NewTemplatesHandler(r *chi.Mux, service s.TemplatesService) {
 
 	r.Route("/v1/templates", func(r chi.Router) {
 		r.Post("/upload", handler.UploadNucleiTemplate)
-		// r.Post("/upload", handler.ScanDomains)
 	})
 }
 

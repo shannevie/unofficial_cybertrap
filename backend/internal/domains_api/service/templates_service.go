@@ -4,10 +4,13 @@ import (
 	"mime/multipart"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog/log"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	r "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/repository"
+	"github.com/shannevie/unofficial_cybertrap/backend/models"
 )
 
 type TemplatesService struct {
@@ -35,6 +38,24 @@ func (s *TemplatesService) UploadNucleiTemplate(file multipart.File, file_header
 	}
 
 	// TODO: Upload to MongoDB the template with the filename and location
+	// Create a new template record
+	template := models.Template{
+		ID:          primitive.NewObjectID(), // Generate a new ObjectID
+		TemplateID:  primitive.NewObjectID().Hex(),
+		Name:        filename,
+		Description: "Description for " + filename, // You can modify this as needed
+		S3URL:       loc,
+		Metadata:    map[string]interface{}{}, // Empty metadata for now, can be updated later
+		Type:        "nuclei",
+		CreatedAt:   time.Now(),
+	}
+
+	// Insert the template record into MongoDB
+	_, err = s.templatesRepo.UploadToMongo(&template)
+	if err != nil {
+		log.Error().Err(err).Msg("Error inserting template into MongoDB")
+		return "", err
+	}
 
 	return loc, nil
 }
@@ -43,10 +64,8 @@ func (s *TemplatesService) UploadNucleiTemplate(file multipart.File, file_header
 
 // TODO: DELETE endpoints for templates
 
-// Checks the file if its a valid type
-// Accepted file types are:
-// .yml .yaml .json
+// Only accept .yml or .yaml for now
 func (s *TemplatesService) isValidFileType(filename string) bool {
 	ext := strings.ToLower(filepath.Ext(filename))
-	return ext == ".yml" || ext == ".yaml" || ext == ".json"
+	return ext == ".yml" || ext == ".yaml"
 }
