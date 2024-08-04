@@ -34,7 +34,13 @@ func (s *DomainsService) isValidFileType(filename string) bool {
 }
 
 // ProcessDomainsFile reads the file content and inserts all domains into the database
-func (s *DomainsService) ProcessDomainsFile(file multipart.File) error {
+func (s *DomainsService) ProcessDomainsFile(file multipart.File, file_header *multipart.FileHeader) error {
+	// Check if the file is a txt
+	ext := strings.ToLower(filepath.Ext(file_header.Filename))
+	if ext != ".txt" {
+		return ErrInvalidFileType
+	}
+
 	// Read the file content
 	var domains []models.Domain
 	scanner := bufio.NewScanner(file)

@@ -1,4 +1,4 @@
-package handler
+package handlers
 
 import (
 	"encoding/json"
@@ -34,18 +34,20 @@ func (h *DomainsHandler) UploadDomainsTxt(w http.ResponseWriter, r *http.Request
 	}
 
 	// Retrieve the file from form data
-	file, _, err := r.FormFile("file")
+	file, file_header, err := r.FormFile("file")
 	if err != nil {
-		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
+		http.Error(w, ErrReadingFile.Error(), http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 
-	err = h.DomainsService.ProcessDomainsFile(file)
+	err = h.DomainsService.ProcessDomainsFile(file, file_header)
 	if err != nil {
-		http.Error(w, "Error processing file", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 // TODO: Change to scan domains

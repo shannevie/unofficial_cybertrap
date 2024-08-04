@@ -29,6 +29,7 @@ func NewDomainsRepository(s3Client *s3.Client, bucketName string, mongoClient *m
 }
 
 // InsertDomains inserts multiple domains into the MongoDB collection
+// Note if there is a duplicate domain we will not insert it
 func (r *DomainsRepository) InsertDomains(domains []models.Domain) error {
 	collection := r.mongoClient.Database(r.mongoDbName).Collection("domains")
 	var documents []interface{}

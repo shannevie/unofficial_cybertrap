@@ -21,7 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	appConfig "github.com/shannevie/unofficial_cybertrap/backend/configs"
-	handler "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/http"
+	handler "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/handlers"
 	r "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/repository"
 	s "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/service"
 )
