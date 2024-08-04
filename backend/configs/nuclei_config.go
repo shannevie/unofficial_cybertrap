@@ -3,12 +3,13 @@ package configs
 import (
 	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
 type NucleiConfig struct {
 	// Server configs
-	RabbitMqUrl string `mapstructure:"RabbitMqUrl"`
+	RabbitMqUri string `mapstructure:"RABBIT_MQ_URI"`
 	MongoDbUri  string `mapstructure:"MONGO_DB_URI"`
 	MongoDbName string `mapstructure:"MONGO_DB_NAME"`
 }
@@ -18,16 +19,21 @@ func LoadNucleiConfig(path string) (NucleiConfig, error) {
 		return NucleiConfig{}, fmt.Errorf("config path is empty")
 	}
 
+	viper.AutomaticEnv()
+
+	// This is for local development
 	viper.AddConfigPath(path)
 	viper.SetConfigName(".env.nuclei")
 	viper.SetConfigType("env")
-	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			return NucleiConfig{}, fmt.Errorf("config file not found: %s", path)
+			// Config file not found; ignore error if desired
+			log.Info().Msg("Loading env from os environment variables")
+		} else {
+			// Config file was found but another error was produced
+			return NucleiConfig{}, fmt.Errorf("failed to read config file: %w", err)
 		}
-		return NucleiConfig{}, fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	var config NucleiConfig

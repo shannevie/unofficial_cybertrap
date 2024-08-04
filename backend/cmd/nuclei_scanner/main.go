@@ -47,7 +47,7 @@ func main() {
 	repo := repository.NewMongoRepository(mongoClient, config.MongoDbName, log.Logger)
 
 	// Initialize RabbitMQ client
-	rabbitClient, err := rabbitmq.NewRabbitMQClient(config.RabbitMqUrl, log.Logger)
+	rabbitClient, err := rabbitmq.NewRabbitMQClient(config.RabbitMqUri, log.Logger)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to create rabbitmq client")
 	}
