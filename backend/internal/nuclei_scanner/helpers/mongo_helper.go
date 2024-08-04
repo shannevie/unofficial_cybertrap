@@ -1,4 +1,4 @@
-package repository
+package helpers
 
 import (
 	"context"
@@ -11,21 +11,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type MongoRepository struct {
+type MongoHelper struct {
 	client   *mongo.Client
 	database string
 	logger   zerolog.Logger
 }
 
-func NewMongoRepository(client *mongo.Client, database string, logger zerolog.Logger) *MongoRepository {
-	return &MongoRepository{
+func NewMongoHelper(client *mongo.Client, database string, logger zerolog.Logger) *MongoHelper {
+	return &MongoHelper{
 		client:   client,
 		database: database,
 		logger:   logger,
 	}
 }
 
-func (r *MongoRepository) InsertScan(ctx context.Context, scan models.Scan) (primitive.ObjectID, error) {
+func (r *MongoHelper) InsertScan(ctx context.Context, scan models.Scan) (primitive.ObjectID, error) {
 	collection := r.client.Database(r.database).Collection("scans")
 	scan.ScanDate = time.Now()
 	scan.Status = "pending"
@@ -39,7 +39,7 @@ func (r *MongoRepository) InsertScan(ctx context.Context, scan models.Scan) (pri
 	return result.InsertedID.(primitive.ObjectID), nil
 }
 
-func (r *MongoRepository) UpdateScanStatus(ctx context.Context, scanID primitive.ObjectID, status string) error {
+func (r *MongoHelper) UpdateScanStatus(ctx context.Context, scanID primitive.ObjectID, status string) error {
 	collection := r.client.Database(r.database).Collection("scans")
 	filter := bson.M{"_id": scanID}
 	update := bson.M{"$set": bson.M{"status": status}}
@@ -53,7 +53,7 @@ func (r *MongoRepository) UpdateScanStatus(ctx context.Context, scanID primitive
 	return nil
 }
 
-func (r *MongoRepository) FindScanByID(ctx context.Context, scanID primitive.ObjectID) (models.Scan, error) {
+func (r *MongoHelper) FindScanByID(ctx context.Context, scanID primitive.ObjectID) (models.Scan, error) {
 	collection := r.client.Database(r.database).Collection("scans")
 	var scan models.Scan
 	err := collection.FindOne(ctx, bson.M{"_id": scanID}).Decode(&scan)
@@ -65,7 +65,7 @@ func (r *MongoRepository) FindScanByID(ctx context.Context, scanID primitive.Obj
 	return scan, nil
 }
 
-func (r *MongoRepository) FindDomainByID(ctx context.Context, domainID primitive.ObjectID) (models.Domain, error) {
+func (r *MongoHelper) FindDomainByID(ctx context.Context, domainID primitive.ObjectID) (models.Domain, error) {
 	collection := r.client.Database(r.database).Collection("domains")
 	var domain models.Domain
 	err := collection.FindOne(ctx, bson.M{"_id": domainID}).Decode(&domain)
@@ -77,7 +77,7 @@ func (r *MongoRepository) FindDomainByID(ctx context.Context, domainID primitive
 	return domain, nil
 }
 
-func (r *MongoRepository) FindTemplateByID(ctx context.Context, templateID primitive.ObjectID) (models.Template, error) {
+func (r *MongoHelper) FindTemplateByID(ctx context.Context, templateID primitive.ObjectID) (models.Template, error) {
 	collection := r.client.Database(r.database).Collection("templates")
 	var template models.Template
 	err := collection.FindOne(ctx, bson.M{"_id": templateID}).Decode(&template)
