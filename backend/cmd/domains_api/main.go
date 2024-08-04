@@ -66,13 +66,16 @@ func main() {
 	router.Use(middleware.Recoverer)
 
 	// repositories DI
-	domainsRepo := r.NewDomainsRepository(s3Client, appConfig.BucketName, mongoClient, appConfig.MongoDbName)
+	domainsRepo := r.NewDomainsRepository(mongoClient, appConfig.MongoDbName)
+	templatesRepo := r.NewTemplatesRepository(s3Client, appConfig.BucketName, mongoClient, appConfig.MongoDbName)
 
 	// service DI
 	domainsService := s.NewDomainsService(domainsRepo)
+	templatesService := s.NewTemplatesService(templatesRepo)
 
 	// HTTP handlers
 	handler.NewDomainsHandler(router, *domainsService)
+	handler.NewTemplatesHandler(router, *templatesService)
 
 	// Start the server
 	server := &http.Server{
