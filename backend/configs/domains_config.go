@@ -3,6 +3,7 @@ package configs
 import (
 	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
@@ -25,16 +26,21 @@ func LoadDomainsConfig(path string) (DomainsConfig, error) {
 		return DomainsConfig{}, fmt.Errorf("config path is empty")
 	}
 
+	viper.AutomaticEnv()
+
+	// This is for local development
 	viper.AddConfigPath(path)
 	viper.SetConfigName(".env.domains")
 	viper.SetConfigType("env")
-	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			return DomainsConfig{}, fmt.Errorf("config file not found: %s", path)
+			// Config file not found; ignore error if desired
+			log.Info().Msg("Loading env from os environment variables")
+		} else {
+			// Config file was found but another error was produced
+			return DomainsConfig{}, fmt.Errorf("failed to read config file: %w", err)
 		}
-		return DomainsConfig{}, fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	var config DomainsConfig

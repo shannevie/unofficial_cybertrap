@@ -8,7 +8,7 @@ require (
 	github.com/go-chi/httplog v0.3.2
 	github.com/lib/pq v1.10.9
 	github.com/rs/zerolog v1.33.0
-	github.com/spf13/viper v1.19.0
+	github.com/spf13/viper v1.18.0
 )
 
 require (
