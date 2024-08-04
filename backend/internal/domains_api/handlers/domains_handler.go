@@ -25,6 +25,9 @@ func NewDomainsHandler(r *chi.Mux, service s.DomainsService) {
 	})
 }
 
+// Allows uploading of domain targets in a text file
+// The file should contain a list of domains separated by new lines
+// limitations: if a single domain is already in the database, the whole file will be rejected
 func (h *DomainsHandler) UploadDomainsTxt(w http.ResponseWriter, r *http.Request) {
 	// Parse the multipart form in the request
 	err := r.ParseMultipartForm(10 << 20) // 10MB
@@ -49,6 +52,8 @@ func (h *DomainsHandler) UploadDomainsTxt(w http.ResponseWriter, r *http.Request
 
 	w.WriteHeader(http.StatusCreated)
 }
+
+// TODO: Regina to write an endpoint to allow upload of domain targets via a string
 
 // TODO: Change to scan domains
 func (h *DomainsHandler) ScanDomains(w http.ResponseWriter, r *http.Request) {
