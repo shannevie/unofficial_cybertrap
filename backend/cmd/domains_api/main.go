@@ -41,7 +41,7 @@ func main() {
 
 	// Prepare external services such as db, cache, etc.
 	// AWS Setup
-	awsCfg, err := awsConfig.LoadDefaultConfig(context.TODO(), awsConfig.WithCredentialsProvider(
+	awsCfg, err := awsConfig.LoadDefaultConfig(context.TODO(), awsConfig.WithRegion("ap-southeast-1"), awsConfig.WithCredentialsProvider(
 		credentials.NewStaticCredentialsProvider(appConfig.AwsAccessKeyId, appConfig.AwsSecretAccessKey, ""),
 	))
 	if err != nil {

@@ -1,0 +1,38 @@
+id: example-scan-template
+
+info:
+  name: Example Scan Template
+  author: ProjectDiscoveryAI
+  severity: info
+  description: |
+    This is an example scan template that demonstrates the basic structure
+    and components of a Nuclei template, including HTTP request, matchers,
+    and extractors.
+
+http:
+  - raw:
+      - |
+        GET /example HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei Example Scanner
+        Accept: */*
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        words:
+          - "Example Domain"
+        part: body
+
+    extractors:
+      - type: regex
+        name: example-title
+        part: body
+        internal: true
+        regex:
+          - "<title>(.*?)</title>"
+        group: 1

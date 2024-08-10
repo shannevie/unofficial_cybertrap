@@ -37,7 +37,6 @@ func (s *TemplatesService) UploadNucleiTemplate(file multipart.File, file_header
 		return "", r.ErrS3Upload
 	}
 
-	// TODO: Upload to MongoDB the template with the filename and location
 	// Create a new template record
 	template := models.Template{
 		ID:          primitive.NewObjectID(), // Generate a new ObjectID
