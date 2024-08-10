@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/shannevie/unofficial_cybertrap/backend/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -40,6 +41,24 @@ func (r *DomainsRepository) GetAllDomains() ([]models.Domain, error) {
 	}
 
 	return domains, nil
+}
+
+func (r *DomainsRepository) DeleteDomainById(id string) error {
+	collection := r.mongoClient.Database(r.mongoDbName).Collection(r.collectionName)
+
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Error().Err(err).Msg("Error converting domain ID to Object")
+		return err
+	}
+
+	_, err = collection.DeleteOne(context.Background(), bson.M{"_id": objectId})
+	if err != nil {
+		log.Error().Err(err).Msg("Error deleting domain from MongoDB")
+		return err
+	}
+
+	return nil
 }
 
 // InsertDomains inserts multiple domains into the MongoDB collection

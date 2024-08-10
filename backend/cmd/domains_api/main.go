@@ -21,7 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	appConfig "github.com/shannevie/unofficial_cybertrap/backend/configs"
-	handler "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/handlers"
+	"github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/handlers"
 	r "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/repository"
 	s "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/service"
 )
@@ -74,8 +74,8 @@ func main() {
 	templatesService := s.NewTemplatesService(templatesRepo)
 
 	// HTTP handlers
-	handler.NewDomainsHandler(router, *domainsService)
-	handler.NewTemplatesHandler(router, *templatesService)
+	handlers.NewDomainsHandler(router, *domainsService)
+	handlers.NewTemplatesHandler(router, *templatesService)
 
 	// Start the server
 	server := &http.Server{

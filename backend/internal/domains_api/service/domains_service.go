@@ -35,6 +35,16 @@ func (s *DomainsService) GetAllDomains() ([]models.Domain, error) {
 	return domains, nil
 }
 
+func (s *DomainsService) DeleteDomainById(id string) error {
+	err := s.domainsRepo.DeleteDomainById(id)
+	if err != nil {
+		log.Error().Err(err).Msg("Error deleting domain from the database")
+		return err
+	}
+
+	return nil
+}
+
 // ProcessDomainsFile reads the file content and inserts all domains into the database
 func (s *DomainsService) ProcessDomainsFile(file multipart.File, file_header *multipart.FileHeader) error {
 	// Check if the file is a txt

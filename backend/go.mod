@@ -327,6 +327,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.17.9
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.58.2
 	github.com/go-chi/chi/v5 v5.0.7 // indirect
+	github.com/gorilla/schema v1.4.1
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/projectdiscovery/nuclei/v3 v3.3.0
