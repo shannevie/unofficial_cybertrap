@@ -136,7 +136,7 @@ export default async function ScansTable({
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <button
                       onClick={() => handleViewDetails(scans.target)}
-                      className="bg-blue-500 text-white px-4 py-2 rounded">
+                      className="bg-green-600 text-white px-4 py-2 rounded">
                         Show Full Summary
                     </button>
                     {/* <div className="flex justify-end gap-3">

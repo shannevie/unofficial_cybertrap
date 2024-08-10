@@ -4,6 +4,7 @@
 import { formatDateToLocal } from '@/app/lib/utils';
 import { fetchFilteredInvoices } from '@/app/lib/data';
 import { useRouter } from 'next/navigation';
+import { InformationCircleIcon, BoltIcon} from '@heroicons/react/24/outline';
 
 export default async function TargetsTable({
   query,
@@ -126,14 +127,27 @@ export default async function TargetsTable({
                     {formatDateToLocal(target.lastScanned)}
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
-                        <button
-                          onClick={() => handleViewDetails(targets.target)}
-                          className="bg-blue-500 text-white px-4 py-2 rounded">
-                            Target Summary / Initiate Scan 
-                        </button>
-                      {/* <UpdateInvoice id={target.id} />
-                      <DeleteInvoice id={target.id} /> */}
+                    <div className="flex space-x-4">  {/* Flex container for buttons */}
+                      <button
+                        onClick={() => handleViewDetails(target.target)}
+                        className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
+                      >
+                        <InformationCircleIcon className="h-4 w-4 text-white" />
+                        <span>Target Summary</span>
+                      </button>
+                      <button
+                        onClick={() => handleViewDetails(target.target)}
+                        className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
+                      >
+                        <BoltIcon className="h-4 w-4 text-white" />
+                        <span>Initiate Scan</span>
+                      </button>
+                    </div>
+                    {/* <UpdateInvoice id={target.id} />
+                    <DeleteInvoice id={target.id} /> */}
                   </td>
+
+
                 </tr>
               ))}
             </tbody>
