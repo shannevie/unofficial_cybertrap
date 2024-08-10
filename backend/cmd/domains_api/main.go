@@ -24,6 +24,7 @@ import (
 	"github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/handlers"
 	r "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/repository"
 	s "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/service"
+	"github.com/shannevie/unofficial_cybertrap/backend/internal/rabbitmq"
 )
 
 func main() {
@@ -56,6 +57,12 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to connect to MongoDB")
 	}
 
+	// Setup rabbitmq client
+	mqClient, err := rabbitmq.NewRabbitMQClient(appConfig.RabbitMqUri)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to connect to RabbitMQ")
+	}
+
 	// Create router and setup middlewares
 	router := chi.NewRouter()
 	// middleware
@@ -70,7 +77,7 @@ func main() {
 	templatesRepo := r.NewTemplatesRepository(s3Client, appConfig.BucketName, mongoClient, appConfig.MongoDbName)
 
 	// service DI
-	domainsService := s.NewDomainsService(domainsRepo)
+	domainsService := s.NewDomainsService(domainsRepo, mqClient)
 	templatesService := s.NewTemplatesService(templatesRepo)
 
 	// HTTP handlers

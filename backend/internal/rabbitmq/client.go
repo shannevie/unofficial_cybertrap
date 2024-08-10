@@ -2,25 +2,24 @@ package rabbitmq
 
 import (
 	"github.com/rabbitmq/amqp091-go"
-	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 type RabbitMQClient struct {
 	conn    *amqp091.Connection
 	channel *amqp091.Channel
-	logger  zerolog.Logger
 }
 
-func NewRabbitMQClient(amqpURL string, logger zerolog.Logger) (*RabbitMQClient, error) {
+func NewRabbitMQClient(amqpURL string) (*RabbitMQClient, error) {
 	conn, err := amqp091.Dial(amqpURL)
 	if err != nil {
-		logger.Error().Err(err).Msg("Failed to connect to RabbitMQ")
+		log.Logger.Error().Err(err).Msg("Failed to connect to RabbitMQ")
 		return nil, err
 	}
 
 	channel, err := conn.Channel()
 	if err != nil {
-		logger.Error().Err(err).Msg("Failed to open a channel")
+		log.Logger.Error().Err(err).Msg("Failed to open a channel")
 		conn.Close()
 		return nil, err
 	}
@@ -28,7 +27,6 @@ func NewRabbitMQClient(amqpURL string, logger zerolog.Logger) (*RabbitMQClient, 
 	return &RabbitMQClient{
 		conn:    conn,
 		channel: channel,
-		logger:  logger,
 	}, nil
 }
 
@@ -45,7 +43,7 @@ func (r *RabbitMQClient) DeclareExchangeAndQueue() error {
 		nil,            // arguments
 	)
 	if err != nil {
-		r.logger.Error().Err(err).Msg("Failed to declare exchange")
+		log.Logger.Error().Err(err).Msg("Failed to declare exchange")
 		return err
 	}
 
@@ -58,7 +56,7 @@ func (r *RabbitMQClient) DeclareExchangeAndQueue() error {
 		nil,                 // arguments
 	)
 	if err != nil {
-		r.logger.Error().Err(err).Msg("Failed to declare queue")
+		log.Logger.Error().Err(err).Msg("Failed to declare queue")
 		return err
 	}
 
@@ -70,7 +68,7 @@ func (r *RabbitMQClient) DeclareExchangeAndQueue() error {
 		nil,
 	)
 	if err != nil {
-		r.logger.Error().Err(err).Msg("Failed to bind queue")
+		log.Logger.Error().Err(err).Msg("Failed to bind queue")
 	}
 	return err
 }
@@ -87,7 +85,7 @@ func (r *RabbitMQClient) Publish(message []byte) error {
 		},
 	)
 	if err != nil {
-		r.logger.Error().Err(err).Msg("Failed to publish message")
+		log.Logger.Error().Err(err).Msg("Failed to publish message")
 	}
 	return err
 }
@@ -103,7 +101,7 @@ func (r *RabbitMQClient) Consume() (<-chan amqp091.Delivery, error) {
 		nil,                 // args
 	)
 	if err != nil {
-		r.logger.Error().Err(err).Msg("Failed to register a consumer")
+		log.Logger.Error().Err(err).Msg("Failed to register a consumer")
 		return nil, err
 	}
 	return msgs, nil
@@ -111,9 +109,9 @@ func (r *RabbitMQClient) Consume() (<-chan amqp091.Delivery, error) {
 
 func (r *RabbitMQClient) Close() {
 	if err := r.channel.Close(); err != nil {
-		r.logger.Error().Err(err).Msg("Failed to close channel")
+		log.Logger.Error().Err(err).Msg("Failed to close channel")
 	}
 	if err := r.conn.Close(); err != nil {
-		r.logger.Error().Err(err).Msg("Failed to close connection")
+		log.Logger.Error().Err(err).Msg("Failed to close connection")
 	}
 }

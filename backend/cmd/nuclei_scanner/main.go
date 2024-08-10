@@ -51,7 +51,7 @@ func main() {
 	mongoHelper := helpers.NewMongoHelper(mongoClient, config.MongoDbName, log.Logger)
 
 	// Initialize RabbitMQ client
-	rabbitClient, err := rabbitmq.NewRabbitMQClient(config.RabbitMqUri, log.Logger)
+	rabbitClient, err := rabbitmq.NewRabbitMQClient(config.RabbitMqUri)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to create rabbitmq client")
 	}

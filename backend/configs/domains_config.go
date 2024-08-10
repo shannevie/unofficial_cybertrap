@@ -19,6 +19,9 @@ type DomainsConfig struct {
 	// MongoDB related configs
 	MongoDbUri  string `mapstructure:"MONGO_DB_URI"`
 	MongoDbName string `mapstructure:"MONGO_DB_NAME"`
+
+	// RabbitMQ related configs
+	RabbitMqUri string `mapstructure:"RABBIT_MQ_URI"`
 }
 
 func LoadDomainsConfig(path string) (DomainsConfig, error) {

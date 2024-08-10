@@ -11,17 +11,20 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	r "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/repository"
+	"github.com/shannevie/unofficial_cybertrap/backend/internal/rabbitmq"
 	"github.com/shannevie/unofficial_cybertrap/backend/models"
 )
 
 type DomainsService struct {
 	domainsRepo *r.DomainsRepository
+	mqClient    *rabbitmq.RabbitMQClient
 }
 
 // NewUserUseCase creates a new instance of userUseCase
-func NewDomainsService(repository *r.DomainsRepository) *DomainsService {
+func NewDomainsService(repository *r.DomainsRepository, mqClient *rabbitmq.RabbitMQClient) *DomainsService {
 	return &DomainsService{
 		domainsRepo: repository,
+		mqClient:    mqClient,
 	}
 }
 
@@ -80,4 +83,10 @@ func (s *DomainsService) ProcessDomainsFile(file multipart.File, file_header *mu
 	}
 
 	return nil
+}
+
+// TODO: Send the id and template ids to the scanner service
+func (s *DomainsService) ScanDomain(domainId string, templateIds []string) {
+	// This will send to rabbitmq to be picked up by the scanner
+
 }
