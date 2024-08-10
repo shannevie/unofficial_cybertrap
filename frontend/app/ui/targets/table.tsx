@@ -2,11 +2,15 @@
 
 // import { UpdateInvoice, DeleteInvoice } from '@/app/ui/invoices/buttons';
 import { formatDateToLocal } from '@/app/lib/utils';
-import { fetchFilteredInvoices } from '@/app/lib/data';
+// import { fetchFilteredInvoices } from '@/app/lib/data';
 import { useRouter } from 'next/navigation';
 import { InformationCircleIcon, BoltIcon} from '@heroicons/react/24/outline';
+import { useState } from 'react';
+import TargetModal from '../components/target-modal';
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
-export default async function TargetsTable({
+export default function TargetsTable({
   query,
   currentPage,
 }: {
@@ -19,6 +23,11 @@ export default async function TargetsTable({
   const handleViewDetails = (target: string) => {
     router.push(`/dashboard/scans/${encodeURIComponent(target)}`);  // Redirect to the target detail page
   };
+
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
 
   const targets = [
     {
@@ -127,7 +136,7 @@ export default async function TargetsTable({
                     {formatDateToLocal(target.lastScanned)}
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
-                    <div className="flex space-x-4">  {/* Flex container for buttons */}
+                    <div className="flex space-x-4">
                       <button
                         onClick={() => handleViewDetails(target.target)}
                         className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
@@ -135,19 +144,20 @@ export default async function TargetsTable({
                         <InformationCircleIcon className="h-4 w-4 text-white" />
                         <span>Target Summary</span>
                       </button>
-                      <button
-                        onClick={() => handleViewDetails(target.target)}
-                        className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
-                      >
-                        <BoltIcon className="h-4 w-4 text-white" />
-                        <span>Initiate Scan</span>
-                      </button>
+                      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                        <DialogTrigger asChild>
+                          <Button
+                            onClick={() => handleOpenModal()}
+                            className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
+                          >
+                            <BoltIcon className="h-4 w-4 text-white" />
+                            <span>Initiate Scan</span>
+                          </Button>
+                        </DialogTrigger>
+                        <TargetModal isOpen={isModalOpen} onClose={handleCloseModal} />
+                      </Dialog>
                     </div>
-                    {/* <UpdateInvoice id={target.id} />
-                    <DeleteInvoice id={target.id} /> */}
                   </td>
-
-
                 </tr>
               ))}
             </tbody>
