@@ -25,6 +25,16 @@ func NewDomainsService(repository *r.DomainsRepository) *DomainsService {
 	}
 }
 
+func (s *DomainsService) GetAllDomains() ([]models.Domain, error) {
+	domains, err := s.domainsRepo.GetAllDomains()
+	if err != nil {
+		log.Error().Err(err).Msg("Error fetching domains from the database")
+		return nil, err
+	}
+
+	return domains, nil
+}
+
 // ProcessDomainsFile reads the file content and inserts all domains into the database
 func (s *DomainsService) ProcessDomainsFile(file multipart.File, file_header *multipart.FileHeader) error {
 	// Check if the file is a txt

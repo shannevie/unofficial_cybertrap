@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -19,9 +20,23 @@ func NewDomainsHandler(r *chi.Mux, service s.DomainsService) {
 	}
 
 	r.Route("/v1/domains", func(r chi.Router) {
+		r.Get("/", handler.GetAllDomains)
 		r.Post("/upload-txt", handler.UploadDomainsTxt)
-		// r.Post("/upload", handler.ScanDomains)
 	})
+}
+
+func (h *DomainsHandler) GetAllDomains(w http.ResponseWriter, r *http.Request) {
+	domains, err := h.DomainsService.GetAllDomains()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Convert to json body and return
+	w.Header().Set("Content-Type", "application/json")
+	// Encode domains and write to response
+	json.NewEncoder(w).Encode(domains)
+	w.WriteHeader(http.StatusOK)
 }
 
 // Allows uploading of domain targets in a text file
