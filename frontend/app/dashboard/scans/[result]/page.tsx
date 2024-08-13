@@ -4,6 +4,7 @@
 import { useParams } from 'next/navigation';
 
 import React from 'react';
+import DashboardCard from "@/components/dashboard/DashboardCard";;
 
 const scans = [
     {
@@ -52,11 +53,21 @@ const TargetDetailPage: React.FC = () => {
     console.log(target)
 
   return (
-    <div className="max-w-3xl mx-auto mt-8">
-      <h1 className="text-2xl font-bold">Scan Summary</h1>
-      <p className="mt-4">Target Name: {target}</p>
-      {/* Add more details about the target as needed */}
-    </div>
+    <>
+      <div className="max-w-3xl mx-auto mt-8">
+        <h1 className="text-2xl font-bold">Scan Summary</h1>
+        <p className="mt-4">Target Name: {target}</p>
+        {/* Add more details about the target as needed */}
+      </div>
+
+      <div className='flex flex-col md:flex-row justify-between gap-5 mb-5'>
+      <DashboardCard
+        title='Subdomains Discovered'
+        count={100}
+        tag="Active domains"
+      />
+    </div>   
+    </>
   );
 };
 
