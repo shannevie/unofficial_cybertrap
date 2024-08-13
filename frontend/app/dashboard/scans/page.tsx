@@ -19,6 +19,7 @@
 
 import ScansTable from "@/app/ui/scans/table";
 
+
 const scans = [
     {
       id: '1',
@@ -61,9 +62,9 @@ const scans = [
 export default function Scans() {
     return (
         <div>
-          <b>Targets</b>
+          <b>Scans</b>
           <ScansTable query="" currentPage={1} />
-        </div>
+        </div> 
       );
 
 
