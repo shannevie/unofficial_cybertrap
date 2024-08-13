@@ -25,7 +25,7 @@ func NewDomainsHandler(r *chi.Mux, service s.DomainsService) {
 		r.Get("/", handler.GetAllDomains)
 		r.Delete("/", handler.DeleteDomainById)
 		r.Post("/upload-txt", handler.UploadDomainsTxt)
-		r.Post("/scan", handler.ScanDomain)
+		// r.Post("/scan", handler.ScanDomain)
 	})
 }
 
@@ -90,19 +90,19 @@ func (h *DomainsHandler) UploadDomainsTxt(w http.ResponseWriter, r *http.Request
 }
 
 // TODO: Finish up Scan endpoint
-func (h *DomainsHandler) ScanDomain(w http.ResponseWriter, r *http.Request) {
-	req := &dto.ScanDomainRequest{}
+// func (h *DomainsHandler) ScanDomain(w http.ResponseWriter, r *http.Request) {
+// 	req := &dto.ScanDomainRequest{}
 
-	if err := schema.NewDecoder().Decode(req, r.URL.Query()); err != nil {
-		http.Error(w, "Invalid query parameters", http.StatusBadRequest)
-		return
-	}
+// 	if err := schema.NewDecoder().Decode(req, r.URL.Query()); err != nil {
+// 		http.Error(w, "Invalid query parameters", http.StatusBadRequest)
+// 		return
+// 	}
 
-	err := h.DomainsService.ScanDomain(req.Domain)
-	if err != nil {
-		http.Error(w, "Failed to scan domain", http.StatusInternalServerError)
-		return
-	}
+// 	err := h.DomainsService.ScanDomain(req.Domain)
+// 	if err != nil {
+// 		http.Error(w, "Failed to scan domain", http.StatusInternalServerError)
+// 		return
+// 	}
 
-	w.WriteHeader(http.StatusOK)
-}
+// 	w.WriteHeader(http.StatusOK)
+// }
