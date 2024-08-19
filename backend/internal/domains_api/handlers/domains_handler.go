@@ -26,6 +26,7 @@ func NewDomainsHandler(r *chi.Mux, service s.DomainsService) {
 		r.Delete("/", handler.DeleteDomainById)
 		r.Post("/upload-txt", handler.UploadDomainsTxt)
 		// r.Post("/scan", handler.ScanDomain)
+		r.Post("/create", handler.CreateDomain)
 	})
 }
 
@@ -106,3 +107,33 @@ func (h *DomainsHandler) UploadDomainsTxt(w http.ResponseWriter, r *http.Request
 
 // 	w.WriteHeader(http.StatusOK)
 // }
+
+func (h *DomainsHandler) CreateDomain(w http.ResponseWriter, r *http.Request) { //r - comes from user, w - comes from server, writing to user
+
+	req := &dto.DomainCreateQuery{}
+
+	if err := schema.NewDecoder().Decode(req, r.URL.Query()); err != nil {
+		http.Error(w, "Invalid query parameters", http.StatusBadRequest)
+		return
+	}
+	// // Extract the "domains" query parameter
+	// domainsQuery := r.URL.Query().Get("domains")
+
+	// // Check if the "domains" parameter is present
+	// if domainsQuery == "" {
+	// 	http.Error(w, "Missing 'domains' query parameter", http.StatusBadRequest)
+	// 	return
+	// }
+
+	// // Process the domainsQuery as needed
+	// For example, you might want to pass it to a service for processing
+	err := h.DomainsService.ProcessDomains(req.Domain)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Send a response indicating that the request was successful
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("Domain created successfully"))
+}

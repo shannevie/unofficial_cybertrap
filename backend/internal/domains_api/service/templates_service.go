@@ -60,6 +60,15 @@ func (s *TemplatesService) UploadNucleiTemplate(file multipart.File, file_header
 }
 
 // TODO: GET endpoints for templates
+func (s *TemplatesService) GetAllTemplates() ([]models.Template, error) {
+	templates, err := s.templatesRepo.GetAllTemplates()
+	if err != nil {
+		log.Error().Err(err).Msg("Error fetching templates from the database")
+		return nil, err
+	}
+
+	return templates, nil
+}
 
 // TODO: DELETE endpoints for templates
 
@@ -67,4 +76,14 @@ func (s *TemplatesService) UploadNucleiTemplate(file multipart.File, file_header
 func (s *TemplatesService) isValidFileType(filename string) bool {
 	ext := strings.ToLower(filepath.Ext(filename))
 	return ext == ".yml" || ext == ".yaml"
+}
+
+func (s *TemplatesService) DeleteTemplateById(id string) error {
+	err := s.templatesRepo.DeleteTemplateById(id)
+	if err != nil {
+		log.Error().Err(err).Msg("Error deleting template from the database")
+		return err
+	}
+
+	return nil
 }

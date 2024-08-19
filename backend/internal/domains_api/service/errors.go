@@ -6,4 +6,5 @@ import "errors"
 var (
 	ErrInvalidFileType = errors.New("invalid file type")
 	ErrReadingFile     = errors.New("error reading file")
+	ErrEmptyString     = errors.New("Error reading empty string")
 )

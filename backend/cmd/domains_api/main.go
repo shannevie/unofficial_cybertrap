@@ -75,14 +75,17 @@ func main() {
 	// repositories DI
 	domainsRepo := r.NewDomainsRepository(mongoClient, appConfig.MongoDbName)
 	templatesRepo := r.NewTemplatesRepository(s3Client, appConfig.BucketName, mongoClient, appConfig.MongoDbName)
+	scansRepo := r.NewScansRepository(mongoClient, appConfig.MongoDbName)
 
 	// service DI
 	domainsService := s.NewDomainsService(domainsRepo, mqClient)
 	templatesService := s.NewTemplatesService(templatesRepo)
+	scansService := s.NewScansService(scansRepo, mqClient)
 
 	// HTTP handlers
 	handlers.NewDomainsHandler(router, *domainsService)
 	handlers.NewTemplatesHandler(router, *templatesService)
+	handlers.NewScansHandler(router, *scansService)
 
 	// Start the server
 	server := &http.Server{
