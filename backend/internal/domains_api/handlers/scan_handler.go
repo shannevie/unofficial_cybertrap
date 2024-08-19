@@ -11,7 +11,7 @@ import (
 
 type ScansHandler struct {
 	ScansService s.ScansService
-}
+} //
 
 // NewUserHandler creates a new instance of userHandler
 func NewScansHandler(r *chi.Mux, service s.ScansService) {
