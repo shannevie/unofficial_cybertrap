@@ -4,5 +4,5 @@ import "errors"
 
 // Service Errors
 var (
-	ErrReadingFile = errors.New("Failed to read uploaded file")
+	ErrReadingFile = errors.New("failed to read uploaded file")
 )
