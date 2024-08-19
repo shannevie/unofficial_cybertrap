@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
 	"github.com/shannevie/unofficial_cybertrap/backend/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -66,4 +67,40 @@ func (r *TemplatesRepository) UploadToMongo(template *models.Template) (string, 
 	}
 
 	return insertedID.Hex(), nil
+}
+
+func (r *TemplatesRepository) GetAllTemplates() ([]models.Template, error) {
+	collection := r.mongoClient.Database(r.mongoDbName).Collection(r.collectionName)
+	cursor, err := collection.Find(context.Background(), bson.M{})
+	if err != nil {
+		log.Error().Err(err).Msg("Error fetching templates from MongoDB")
+		return nil, err
+	}
+
+	var templates []models.Template
+
+	if err = cursor.All(context.Background(), &templates); err != nil {
+		log.Error().Err(err).Msg("Error populating templates from MongoDB cursor")
+		return nil, err
+	}
+
+	return templates, nil
+}
+
+func (r *TemplatesRepository) DeleteTemplateById(id string) error {
+	collection := r.mongoClient.Database(r.mongoDbName).Collection(r.collectionName)
+
+	objectId, err := primitive.ObjectIDFromHex(id) // converting to mongodb object id
+	if err != nil {
+		log.Error().Err(err).Msg("Error converting template ID to Object")
+		return err
+	}
+
+	_, err = collection.DeleteOne(context.Background(), bson.M{"_id": objectId})
+	if err != nil {
+		log.Error().Err(err).Msg("Error deleting template from MongoDB")
+		return err
+	}
+
+	return nil
 }

@@ -75,7 +75,7 @@ func (s *DomainsService) ProcessDomainsFile(file multipart.File, file_header *mu
 		return err
 	}
 
-	// Insert the domains into the database
+	// Insert the domains into the database``
 	err := s.domainsRepo.InsertDomains(domains)
 	if err != nil {
 		log.Error().Err(err).Msg("Error inserting domains into the database")
@@ -89,4 +89,24 @@ func (s *DomainsService) ProcessDomainsFile(file multipart.File, file_header *mu
 func (s *DomainsService) ScanDomain(domainId string, templateIds []string) {
 	// This will send to rabbitmq to be picked up by the scanner
 
+}
+
+// ProcessDomainsFile reads the file content and inserts all domains into the database
+func (s *DomainsService) ProcessDomains(domainQuery string) error {
+
+	domainModel := models.Domain{
+		ID:         primitive.NewObjectID(),
+		Domain:     domainQuery,
+		UploadedAt: time.Now(),
+		UserID:     "temp_user", // For now we will hardcode the user_id as temp_user until auth is done
+	}
+
+	// Insert the domains into the database
+	err := s.domainsRepo.InsertSingleDomain(domainModel)
+	if err != nil {
+		log.Error().Err(err).Msg("Error inserting domains into the database")
+		return err
+	}
+
+	return nil
 }

@@ -46,7 +46,7 @@ func (r *DomainsRepository) GetAllDomains() ([]models.Domain, error) {
 func (r *DomainsRepository) DeleteDomainById(id string) error {
 	collection := r.mongoClient.Database(r.mongoDbName).Collection(r.collectionName)
 
-	objectId, err := primitive.ObjectIDFromHex(id)
+	objectId, err := primitive.ObjectIDFromHex(id) // converting to mongodb object id
 	if err != nil {
 		log.Error().Err(err).Msg("Error converting domain ID to Object")
 		return err
@@ -77,4 +77,20 @@ func (r *DomainsRepository) InsertDomains(domains []models.Domain) error {
 	}
 
 	return nil
+}
+
+// InsertDomains inserts multiple domains into the MongoDB collection
+// Note if there is a duplicate domain we will not insert it
+func (r *DomainsRepository) InsertSingleDomain(domain models.Domain) error {
+	collection := r.mongoClient.Database(r.mongoDbName).Collection(r.collectionName)
+
+	_, err := collection.InsertOne(context.Background(), domain)
+
+	if err != nil {
+		log.Error().Err(err).Msg("Error inserting domains into MongoDB")
+		return err
+	}
+
+	return nil
+
 }
