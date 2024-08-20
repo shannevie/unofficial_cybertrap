@@ -29,3 +29,23 @@ func (s *ScansService) GetAllScans() ([]models.Scan, error) {
 
 	return scans, nil
 }
+
+// TODO: Send the id and template ids to the scanner service
+func (s *ScansService) ScanDomain(domainId string, templateIds []string) error {
+	// This will send to rabbitmq to be picked up by the scanner
+	// Create a new scan record in the database
+	messageJson := rabbitmq.ScanMessage{
+		ScanID:      domainId,
+		TemplateIDs: templateIds,
+		DomainID:    domainId,
+	}
+
+	// Send the message to the queue
+	err := s.mqClient.Publish(messageJson)
+	if err != nil {
+		log.Error().Err(err).Msg("Error sending scan message to queue")
+		return err
+	}
+
+	return nil
+}

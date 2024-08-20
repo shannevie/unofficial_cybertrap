@@ -78,7 +78,7 @@ func main() {
 	scansRepo := r.NewScansRepository(mongoClient, appConfig.MongoDbName)
 
 	// service DI
-	domainsService := s.NewDomainsService(domainsRepo, mqClient)
+	domainsService := s.NewDomainsService(domainsRepo)
 	templatesService := s.NewTemplatesService(templatesRepo)
 	scansService := s.NewScansService(scansRepo, mqClient)
 

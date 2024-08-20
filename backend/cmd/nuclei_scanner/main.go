@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"sync"
 	"syscall"
 
 	nuclei "github.com/projectdiscovery/nuclei/v3/lib"
@@ -20,14 +21,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-// ScanMessage defines the structure of the message received from RabbitMQ
-// TODO: DomainID and TemplateId will be an array of strings
-type ScanMessage struct {
-	ScanID     string `json:"scan_id"`
-	TemplateID string `json:"template_id"`
-	DomainID   string `json:"domain_id"`
-}
 
 func main() {
 	// Start logger
@@ -93,7 +86,7 @@ func main() {
 		go func(msg amqp.Delivery) {
 			defer func() { <-semaphore }() // Release the slot once the goroutine is finished
 
-			var scanMsg ScanMessage
+			var scanMsg rabbitmq.ScanMessage
 			if err := json.Unmarshal(msg.Body, &scanMsg); err != nil {
 				log.Error().Err(err).Msg("Failed to unmarshal message")
 				msg.Nack(false, true) // Nack the message so another free machine can pick it up
@@ -102,26 +95,61 @@ func main() {
 
 			log.Info().Msgf("Received message: %s", msg.Body)
 
+			// Concurrently download the templates
 			// Fetch template and domain from MongoDB
-			templateID, _ := primitive.ObjectIDFromHex(scanMsg.TemplateID)
-			template, err := mongoHelper.FindTemplateByID(context.Background(), templateID)
-			if err != nil {
-				log.Error().Err(err).Msg("Failed to find template by ID")
-				msg.Nack(false, true) // Nack the message so another machine can pick it up
-				return
+			var wg sync.WaitGroup
+			templateFiles := make([]string, 0, len(scanMsg.TemplateIDs))
+			errChan := make(chan error, len(scanMsg.TemplateIDs))
+
+			for _, templateIDStr := range scanMsg.TemplateIDs {
+				wg.Add(1)
+				go func(idStr string) {
+					defer wg.Done()
+
+					templateID, err := primitive.ObjectIDFromHex(idStr)
+					if err != nil {
+						errChan <- fmt.Errorf("Invalid template ID: %s, error: %w", idStr, err)
+						return
+					}
+
+					template, err := mongoHelper.FindTemplateByID(context.Background(), templateID)
+					if err != nil {
+						errChan <- fmt.Errorf("Failed to find template by ID: %s, error: %w", idStr, err)
+						return
+					}
+
+					templateFilePath := filepath.Join(os.TempDir(), fmt.Sprintf("template_%s.json", idStr))
+					err = s3Helper.DownloadFileFromURL(template.S3URL, templateFilePath)
+					if err != nil {
+						errChan <- fmt.Errorf("Failed to download template file from S3 for ID: %s, error: %w", idStr, err)
+						return
+					}
+
+					templateFiles = append(templateFiles, templateFilePath)
+				}(templateIDStr)
 			}
 
-			// Download the template file from S3
-			templateFilePath := filepath.Join(os.TempDir(), fmt.Sprintf("template_%s.json", scanMsg.TemplateID))
-			err = s3Helper.DownloadFileFromURL(template.S3URL, templateFilePath)
-			if err != nil {
-				log.Error().Err(err).Msg("Failed to download template file from S3")
-				msg.Nack(false, true) // Nack the message so another machine can pick it up
-				return
+			wg.Wait()
+			close(errChan)
+
+			for err := range errChan {
+				log.Error().Err(err).Msg("Error occurred during template processing")
+
+				if err != nil {
+					log.Error().Err(err).Msg("Failed to download template file from S3")
+					msg.Nack(false, true) // Nack the message so another machine can pick it up
+					return
+				}
 			}
 
-			defer s3Helper.DeleteFile(templateFilePath) // Ensure file is deleted after scan
+			// Ensure all downloaded files are deleted after scan
+			defer func() {
+				for _, file := range templateFiles {
+					s3Helper.DeleteFile(file)
+				}
+			}()
 
+			// Fetch the domain from MongoDB
 			domainID, _ := primitive.ObjectIDFromHex(scanMsg.DomainID)
 			domain, err := mongoHelper.FindDomainByID(context.Background(), domainID)
 			if err != nil {
@@ -138,6 +166,9 @@ func main() {
 				msg.Nack(false, true) // Nack the message so another machine can pick it up
 				return
 			}
+
+			// Ack the message so the mq can remove it
+			msg.Ack(false)
 
 			// TODO: Load the templates
 			// Create Nuclei engine and run the scan

@@ -1,9 +1,18 @@
 package rabbitmq
 
 import (
+	"encoding/json"
+
 	"github.com/rabbitmq/amqp091-go"
 	"github.com/rs/zerolog/log"
 )
+
+// ScanMessage defines the structure of the message received from RabbitMQ
+type ScanMessage struct {
+	ScanID      string   `json:"scan_id"`
+	TemplateIDs []string `json:"template_ids"`
+	DomainID    string   `json:"domain_id"`
+}
 
 type RabbitMQClient struct {
 	conn    *amqp091.Connection
@@ -73,15 +82,21 @@ func (r *RabbitMQClient) DeclareExchangeAndQueue() error {
 	return err
 }
 
-func (r *RabbitMQClient) Publish(message []byte) error {
-	err := r.channel.Publish(
+func (r *RabbitMQClient) Publish(message ScanMessage) error {
+	messageJSON, err := json.Marshal(message)
+	if err != nil {
+		log.Logger.Error().Err(err).Msg("Failed to marshal ScanMessage")
+		return err
+	}
+
+	err = r.channel.Publish(
 		"nuclei_scans", // exchange
 		"",             // routing key
 		false,          // mandatory
 		false,          // immediate
 		amqp091.Publishing{
 			ContentType: "application/json",
-			Body:        message,
+			Body:        messageJSON,
 		},
 	)
 	if err != nil {
