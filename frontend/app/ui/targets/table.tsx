@@ -24,10 +24,10 @@ export default function TargetsTable({
     router.push(`/dashboard/scans/${encodeURIComponent(target)}`);  // Redirect to the target detail page
   };
 
-  
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
+  // const handleOpenModal = () => setIsModalOpen(true);
+  // const handleCloseModal = () => setIsModalOpen(false);
+
 
   const targets = [
     {
@@ -144,7 +144,11 @@ export default function TargetsTable({
                         <InformationCircleIcon className="h-4 w-4 text-white" />
                         <span>Target Summary</span>
                       </button>
-                      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                      <Button className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2">
+                      <BoltIcon className="h-4 w-4 text-white" />
+                        <span>Initiate Scan</span>
+                      </Button>
+                      {/* <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                         <DialogTrigger asChild>
                           <Button
                             onClick={() => handleOpenModal()}
@@ -155,7 +159,7 @@ export default function TargetsTable({
                           </Button>
                         </DialogTrigger>
                         <TargetModal isOpen={isModalOpen} onClose={handleCloseModal} />
-                      </Dialog>
+                      </Dialog> */}
                     </div>
                   </td>
                 </tr>
