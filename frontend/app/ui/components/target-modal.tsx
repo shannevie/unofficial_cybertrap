@@ -29,10 +29,10 @@ export default function TargetModal({ isOpen, onClose }: { isOpen: boolean; onCl
         <DialogHeader>
           <DialogTitle>Add Target</DialogTitle>
           <DialogDescription>
-            Enter the target name and description below.
+            Enter the target name below.
           </DialogDescription>
         </DialogHeader>
-        <form className="mt-4">
+        <form className="mt-2">
           <div className="mb-4">
             <Label htmlFor="targetName">Target Name</Label>
             <Input
@@ -44,7 +44,7 @@ export default function TargetModal({ isOpen, onClose }: { isOpen: boolean; onCl
               onChange={(e) => setTargetName(e.target.value)}
             />
           </div>
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <Label htmlFor="description">Description (optional)</Label>
             <textarea
               id="description"
@@ -54,7 +54,7 @@ export default function TargetModal({ isOpen, onClose }: { isOpen: boolean; onCl
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
               rows={3}
             />
-          </div>
+          </div> */}
           <div className="flex justify-end">
             <Button type="button" onClick={handleSubmit}
             className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
