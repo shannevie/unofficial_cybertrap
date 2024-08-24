@@ -6,22 +6,18 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/rs/zerolog/log"
 )
 
 type S3Helper struct {
 	client *s3.Client
 }
 
-func NewS3Helper() (*S3Helper, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		return nil, fmt.Errorf("failed to load AWS config: %w", err)
-	}
-
+func NewS3Helper(cfg aws.Config) (*S3Helper, error) {
 	client := s3.NewFromConfig(cfg)
 	return &S3Helper{client: client}, nil
 }
@@ -32,8 +28,10 @@ func (s *S3Helper) DownloadFileFromURL(s3URL, dest string) error {
 		return fmt.Errorf("invalid S3 URL: %w", err)
 	}
 
-	bucket := parsedURL.Host
+	bucket := parsedURL.Host[:strings.Index(parsedURL.Host, ".")]
 	key := parsedURL.Path[1:]
+
+	log.Info().Msgf("Downloading bucket: %s, key: %s", bucket, key)
 
 	input := &s3.GetObjectInput{
 		Bucket: aws.String(bucket),

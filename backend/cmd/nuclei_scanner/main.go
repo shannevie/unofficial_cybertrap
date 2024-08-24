@@ -10,6 +10,8 @@ import (
 	"sync"
 	"syscall"
 
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	nuclei "github.com/projectdiscovery/nuclei/v3/lib"
 	"github.com/projectdiscovery/nuclei/v3/pkg/output"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -60,7 +62,14 @@ func main() {
 	}
 
 	// Initialize S3 helper
-	s3Helper, err := helpers.NewS3Helper()
+	awsCfg, err := awsConfig.LoadDefaultConfig(context.TODO(), awsConfig.WithRegion("ap-southeast-1"), awsConfig.WithCredentialsProvider(
+		credentials.NewStaticCredentialsProvider(config.AwsAccessKeyId, config.AwsSecretAccessKey, ""),
+	))
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to load AWS config")
+	}
+
+	s3Helper, err := helpers.NewS3Helper(awsCfg)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to create S3 helper")
 	}
@@ -118,7 +127,12 @@ func main() {
 			}
 
 			// Fetch the domain from MongoDB
-			domainID, _ := primitive.ObjectIDFromHex(scanMsg.DomainID)
+			domainID, err := primitive.ObjectIDFromHex(scanMsg.DomainID)
+			if err != nil {
+				log.Error().Err(err).Msg("Failed to convert domain ID to ObjectID")
+				return
+			}
+
 			domain, err := mongoHelper.FindDomainByID(context.Background(), domainID)
 			if err != nil {
 				log.Error().Err(err).Msg("Failed to find domain by ID")
@@ -180,6 +194,7 @@ func main() {
 			templateFiles := make([]string, 0, len(scanMsg.TemplateIDs))
 			errChan := make(chan error, len(scanMsg.TemplateIDs))
 
+			log.Info().Msgf("Downloading templates")
 			for _, templateIDStr := range scanMsg.TemplateIDs {
 				wg.Add(1)
 				go func(idStr string) {
@@ -228,6 +243,8 @@ func main() {
 				}
 			}()
 
+			log.Info().Msg("Successfully downloaded templates")
+
 			// Append the default templates directory to the template files
 			templateFiles = append(templateFiles, nuclei.DefaultConfig.TemplatesDirectory)
 
@@ -248,11 +265,14 @@ func main() {
 				// TODO: Log the error into the logs db
 				return
 			}
+			log.Info().Msg("Successfully loaded templates into nuclei engine")
 
 			// Load the targets from the domain fetched from MongoDB
 			targets := []string{domain.Domain}
 			ne.LoadTargets(targets, false)
+			log.Info().Msg("Successfully loaded targets into nuclei engine")
 
+			log.Info().Msg("Starting scan")
 			// Update the scan results
 			err = ne.ExecuteCallbackWithCtx(context.TODO(), func(event *output.ResultEvent) {
 				scanResults = append(scanResults, *event)
@@ -263,6 +283,7 @@ func main() {
 				mongoHelper.UpdateScanStatus(context.Background(), scanID, "failed")
 				return
 			}
+			log.Info().Msg("Scan completed")
 
 			// TODO: Handle the scan results
 			// Update the logs too and upload into s3
