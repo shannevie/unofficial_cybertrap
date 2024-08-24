@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/gorilla/schema"
 
 	"github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/dto"
 	s "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/service"
@@ -23,7 +22,7 @@ func NewScansHandler(r *chi.Mux, service s.ScansService) {
 
 	r.Route("/v1/scans", func(r chi.Router) {
 		r.Get("/", handler.GetAllScans)
-		r.Post("/scan", handler.ScanDomain)
+		r.Post("/", handler.ScanDomain)
 	})
 }
 
@@ -44,10 +43,11 @@ func (h *ScansHandler) GetAllScans(w http.ResponseWriter, r *http.Request) {
 func (h *ScansHandler) ScanDomain(w http.ResponseWriter, r *http.Request) {
 	req := &dto.ScanDomainRequest{}
 
-	if err := schema.NewDecoder().Decode(req, r.URL.Query()); err != nil {
-		http.Error(w, "Invalid query parameters", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 
 	err := h.ScansService.ScanDomain(req.DomainID, req.TemplateIDs)
 	if err != nil {
