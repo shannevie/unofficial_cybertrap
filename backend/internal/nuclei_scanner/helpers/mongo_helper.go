@@ -17,6 +17,12 @@ type MongoHelper struct {
 	logger   zerolog.Logger
 }
 
+const (
+	ScansCollection           = "scans"
+	DomainsCollection         = "domains"
+	NucleiTemplatesCollection = "nucleiTemplates"
+)
+
 func NewMongoHelper(client *mongo.Client, database string, logger zerolog.Logger) *MongoHelper {
 	return &MongoHelper{
 		client:   client,
@@ -26,7 +32,7 @@ func NewMongoHelper(client *mongo.Client, database string, logger zerolog.Logger
 }
 
 func (r *MongoHelper) InsertScan(ctx context.Context, scan models.Scan) (primitive.ObjectID, error) {
-	collection := r.client.Database(r.database).Collection("scans")
+	collection := r.client.Database(r.database).Collection(ScansCollection)
 	scan.ScanDate = time.Now()
 	scan.Status = "pending"
 
@@ -40,7 +46,7 @@ func (r *MongoHelper) InsertScan(ctx context.Context, scan models.Scan) (primiti
 }
 
 func (r *MongoHelper) UpdateScanStatus(ctx context.Context, scanID primitive.ObjectID, status string) error {
-	collection := r.client.Database(r.database).Collection("scans")
+	collection := r.client.Database(r.database).Collection(ScansCollection)
 	filter := bson.M{"_id": scanID}
 	update := bson.M{"$set": bson.M{"status": status}}
 
@@ -54,7 +60,7 @@ func (r *MongoHelper) UpdateScanStatus(ctx context.Context, scanID primitive.Obj
 }
 
 func (r *MongoHelper) FindScanByID(ctx context.Context, scanID primitive.ObjectID) (models.Scan, error) {
-	collection := r.client.Database(r.database).Collection("scans")
+	collection := r.client.Database(r.database).Collection(ScansCollection)
 	var scan models.Scan
 	err := collection.FindOne(ctx, bson.M{"_id": scanID}).Decode(&scan)
 	if err != nil {
@@ -66,7 +72,7 @@ func (r *MongoHelper) FindScanByID(ctx context.Context, scanID primitive.ObjectI
 }
 
 func (r *MongoHelper) FindDomainByID(ctx context.Context, domainID primitive.ObjectID) (models.Domain, error) {
-	collection := r.client.Database(r.database).Collection("domains")
+	collection := r.client.Database(r.database).Collection(DomainsCollection)
 	var domain models.Domain
 	err := collection.FindOne(ctx, bson.M{"_id": domainID}).Decode(&domain)
 	if err != nil {
@@ -78,7 +84,7 @@ func (r *MongoHelper) FindDomainByID(ctx context.Context, domainID primitive.Obj
 }
 
 func (r *MongoHelper) FindTemplateByID(ctx context.Context, templateID primitive.ObjectID) (models.Template, error) {
-	collection := r.client.Database(r.database).Collection("templates")
+	collection := r.client.Database(r.database).Collection(NucleiTemplatesCollection)
 	var template models.Template
 	err := collection.FindOne(ctx, bson.M{"_id": templateID}).Decode(&template)
 	if err != nil {

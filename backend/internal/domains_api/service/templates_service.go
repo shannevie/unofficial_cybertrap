@@ -31,7 +31,10 @@ func (s *TemplatesService) UploadNucleiTemplate(file multipart.File, file_header
 		return "", ErrInvalidFileType
 	}
 
-	loc, err := s.templatesRepo.UploadToS3(file, filename)
+	id := primitive.NewObjectID()
+
+	// We will use the objectid as the filename
+	loc, err := s.templatesRepo.UploadToS3(file, id.Hex())
 	if err != nil {
 		log.Error().Err(err).Msg("Error uploading file")
 		return "", r.ErrS3Upload
@@ -39,7 +42,7 @@ func (s *TemplatesService) UploadNucleiTemplate(file multipart.File, file_header
 
 	// Create a new template record
 	template := models.Template{
-		ID:          primitive.NewObjectID(), // Generate a new ObjectID
+		ID:          id, // Generate a new ObjectID
 		TemplateID:  primitive.NewObjectID().Hex(),
 		Name:        filename,
 		Description: "Description for " + filename, // You can modify this as needed
