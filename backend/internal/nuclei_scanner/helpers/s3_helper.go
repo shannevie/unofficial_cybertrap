@@ -6,11 +6,11 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/rs/zerolog/log"
 )
 
 type S3Helper struct {
@@ -31,8 +31,6 @@ func (s *S3Helper) DownloadFileFromURL(s3URL, dest string) error {
 	bucket := parsedURL.Host[:strings.Index(parsedURL.Host, ".")]
 	key := parsedURL.Path[1:]
 
-	log.Info().Msgf("Downloading bucket: %s, key: %s", bucket, key)
-
 	input := &s3.GetObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
@@ -43,6 +41,12 @@ func (s *S3Helper) DownloadFileFromURL(s3URL, dest string) error {
 		return fmt.Errorf("failed to download file from S3: %w", err)
 	}
 	defer result.Body.Close()
+
+	// Ensure the directory exists
+	dir := filepath.Dir(dest)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
+	}
 
 	file, err := os.Create(dest)
 	if err != nil {
@@ -55,13 +59,5 @@ func (s *S3Helper) DownloadFileFromURL(s3URL, dest string) error {
 		return fmt.Errorf("failed to write file to local destination: %w", err)
 	}
 
-	return nil
-}
-
-func (s *S3Helper) DeleteFile(filepath string) error {
-	err := os.Remove(filepath)
-	if err != nil {
-		return fmt.Errorf("failed to delete file: %w", err)
-	}
 	return nil
 }

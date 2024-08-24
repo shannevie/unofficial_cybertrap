@@ -88,8 +88,10 @@ func main() {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 
-	// Process messages from RabbitMQ
+	templateDir := filepath.Join(os.TempDir(), "nuclei-templates")
+	nuclei.DefaultConfig.TemplatesDirectory = templateDir
 
+	// Process messages from RabbitMQ
 	log.Info().Msg("Listening for messages from RabbitMQ")
 	for msg := range messages {
 		// This would block until a slot is available
@@ -101,6 +103,9 @@ func main() {
 			defer func() { <-semaphore }() // Release the slot once the goroutine is finished
 
 			scanResults := []output.ResultEvent{}
+			// We ack the message first, so the mq can remove it
+			// then if any processing fails, we simply log it as error into the logs db
+			msg.Ack(false)
 
 			var scanMsg rabbitmq.ScanMessage
 			if err := json.Unmarshal(msg.Body, &scanMsg); err != nil {
@@ -110,10 +115,6 @@ func main() {
 			}
 
 			log.Info().Msgf("Received message: %s", msg.Body)
-
-			// We ack the message first, so the mq can remove it
-			// then if any processing fails, we simply log it as error into the logs db
-			msg.Ack(false)
 
 			// Create a scan ID for the scan which will be used to store the results
 			scanID, _ := primitive.ObjectIDFromHex(scanMsg.ScanID)
@@ -191,6 +192,8 @@ func main() {
 			// Concurrently download the templates
 			// Fetch template and domain from MongoDB
 			var wg sync.WaitGroup
+
+			nuclei.DefaultConfig.DisableUpdateCheck()
 			templateFiles := make([]string, 0, len(scanMsg.TemplateIDs))
 			errChan := make(chan error, len(scanMsg.TemplateIDs))
 
@@ -212,7 +215,10 @@ func main() {
 						return
 					}
 
-					templateFilePath := filepath.Join(os.TempDir(), fmt.Sprintf("template_%s.json", idStr))
+					templateFilePath := filepath.Join(templateDir, fmt.Sprintf("template-%s.yaml", idStr))
+
+					log.Info().Msgf("Downloading template %s to %s", template.S3URL, templateFilePath)
+
 					err = s3Helper.DownloadFileFromURL(template.S3URL, templateFilePath)
 					if err != nil {
 						errChan <- fmt.Errorf("failed to download template file from S3 for ID: %s, error: %w", idStr, err)
@@ -239,21 +245,33 @@ func main() {
 			// Ensure all downloaded files are deleted after scan
 			defer func() {
 				for _, file := range templateFiles {
-					s3Helper.DeleteFile(file)
+					// Don't delete TemplatesDirectory
+					if file == nuclei.DefaultConfig.TemplatesDirectory {
+						continue
+					}
+					os.Remove(file)
 				}
 			}()
 
 			log.Info().Msg("Successfully downloaded templates")
 
 			// Append the default templates directory to the template files
-			templateFiles = append(templateFiles, nuclei.DefaultConfig.TemplatesDirectory)
-
+			// templateFiles = append(templateFiles, nuclei.DefaultConfig.TemplatesDirectory)
 			templateSources := nuclei.TemplateSources{
 				Templates: templateFiles,
 			}
 
+			nuclei.DefaultConfig.LogAllEvents = true
+
 			// Create the nuclei engine with the template sources
-			ne, err := nuclei.NewNucleiEngineCtx(context.TODO(), nuclei.WithTemplatesOrWorkflows(templateSources))
+			ne, err := nuclei.NewNucleiEngineCtx(
+				context.TODO(),
+				nuclei.WithTemplatesOrWorkflows(templateSources),
+				nuclei.WithTemplateUpdateCallback(true, func(newVersion string) {
+					log.Info().Msgf("New template version available: %s", newVersion)
+				}),
+			)
+
 			if err != nil {
 				log.Error().Err(err).Msg("Failed to create Nuclei engine")
 				// TODO: Log the error into the logs db
@@ -271,7 +289,6 @@ func main() {
 			targets := []string{domain.Domain}
 			ne.LoadTargets(targets, false)
 			log.Info().Msg("Successfully loaded targets into nuclei engine")
-
 			log.Info().Msg("Starting scan")
 			// Update the scan results
 			err = ne.ExecuteCallbackWithCtx(context.TODO(), func(event *output.ResultEvent) {
@@ -284,6 +301,17 @@ func main() {
 				return
 			}
 			log.Info().Msg("Scan completed")
+			// Loop the scan results and parse them into a json
+			// for _, result := range scanResults {
+			// 	// Convert the result to a json
+			// 	resultJSON, err := json.Marshal(result)
+			// 	if err != nil {
+			// 		log.Error().Err(err).Msg("Failed to marshal result")
+			// 		return
+			// 	}
+
+			// 	// TODO: Upload the results to s3 or something or store them into mongodb
+			// }
 
 			// TODO: Handle the scan results
 			// Update the logs too and upload into s3
@@ -294,8 +322,6 @@ func main() {
 			// 	msg.Nack(false, true) // Nack the message so another machine can pick it up
 			// 	return
 			// }
-
-			msg.Ack(false) // Acknowledge the message after successful processing
 		}(msg)
 	}
 

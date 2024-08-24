@@ -109,7 +109,7 @@ func (r *RabbitMQClient) Consume() (<-chan amqp091.Delivery, error) {
 	msgs, err := r.channel.Consume(
 		"nuclei_scan_queue", // queue
 		"",                  // consumer
-		true,                // auto-ack
+		false,               // auto-ack
 		false,               // exclusive
 		false,               // no-local
 		false,               // no-wait
