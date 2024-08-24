@@ -43,12 +43,14 @@ func main() {
 
 	// Initialize MongoDB repository
 	mongoHelper := helpers.NewMongoHelper(mongoClient, config.MongoDbName, log.Logger)
+	log.Info().Msg("MongoDB client initialized")
 
 	// Initialize RabbitMQ client
 	rabbitClient, err := rabbitmq.NewRabbitMQClient(config.RabbitMqUri)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to create rabbitmq client")
 	}
+	log.Info().Msg("RabbitMQ client initialized")
 	defer rabbitClient.Close()
 
 	// Declare exchange and queue
@@ -78,6 +80,8 @@ func main() {
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 
 	// Process messages from RabbitMQ
+
+	log.Info().Msg("Listening for messages from RabbitMQ")
 	for msg := range messages {
 		// This would block until a slot is available
 		// API level will do a check on max number of items in the rabbitmq queue
