@@ -4,8 +4,6 @@ import { formatDateToLocal } from '@/app/lib/utils';
 import { useRouter } from 'next/navigation';
 import { InformationCircleIcon, BoltIcon } from '@heroicons/react/24/outline';
 import { useState, useEffect } from 'react';
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 
 interface Domain {
   ID: string;
@@ -19,11 +17,21 @@ interface TargetsTableProps {
   currentPage: number;
 }
 
+// Mock data
+const mockDomains: Domain[] = [
+  { ID: '1', Domain: 'example.com', UploadedAt: '2023-08-01T12:00:00Z', UserID: 'user123' },
+  { ID: '2', Domain: 'testsite.org', UploadedAt: '2023-08-02T15:30:00Z', UserID: 'user456' },
+  { ID: '3', Domain: 'mysite.net', UploadedAt: '2023-08-03T18:45:00Z', UserID: 'user789' },
+  { ID: '4', Domain: 'sampledomain.io', UploadedAt: '2023-08-04T10:15:00Z', UserID: 'user321' },
+  { ID: '5', Domain: 'anotherexample.dev', UploadedAt: '2023-08-05T11:20:00Z', UserID: 'user654' },
+];
+
 export default function TargetsTable({ query, currentPage }: TargetsTableProps) {
-  const [domains, setDomains] = useState<Domain[]>([]); // Typed state
+  const [domains, setDomains] = useState<Domain[]>(mockDomains); // Use mock data
   const router = useRouter();
 
   useEffect(() => {
+    /*
     const endpoint = '/v1/domains/';
 
     fetch(endpoint)
@@ -40,14 +48,15 @@ export default function TargetsTable({ query, currentPage }: TargetsTableProps) 
       .catch(error => {
         console.error('Error fetching domains:', error);
       });
-  }, []); // Empty dependency array means this effect runs once when the component mounts
+    */
+  }, []); // Run only once on component mount
 
   const handleViewDetails = (target: string) => {
     router.push(`/dashboard/scans/${encodeURIComponent(target)}`);  // Redirect to the target detail page
   };
 
   const selectScanEngine = (target: string) => {
-    router.push(`/dashboard/targets/select-scan}`); // Redirect to select scan engine
+    router.push(`/dashboard/targets/select-scan?target=${encodeURIComponent(target)}`);
   }
 
   return (
