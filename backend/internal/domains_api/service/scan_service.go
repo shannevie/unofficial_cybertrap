@@ -5,6 +5,7 @@ import (
 	r "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/repository"
 	"github.com/shannevie/unofficial_cybertrap/backend/internal/rabbitmq"
 	"github.com/shannevie/unofficial_cybertrap/backend/models"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ScansService struct {
@@ -32,10 +33,12 @@ func (s *ScansService) GetAllScans() ([]models.Scan, error) {
 
 // TODO: Send the id and template ids to the scanner service
 func (s *ScansService) ScanDomain(domainId string, templateIds []string) error {
+	// TODO: Check if the domain and the template ids are valid before sending to the scanner
+
 	// This will send to rabbitmq to be picked up by the scanner
 	// Create a new scan record in the database
 	messageJson := rabbitmq.ScanMessage{
-		ScanID:      domainId,
+		ScanID:      primitive.NewObjectID().Hex(),
 		TemplateIDs: templateIds,
 		DomainID:    domainId,
 	}
@@ -46,6 +49,8 @@ func (s *ScansService) ScanDomain(domainId string, templateIds []string) error {
 		log.Error().Err(err).Msg("Error sending scan message to queue")
 		return err
 	}
+
+	// TODO: Return the scan ID to the client so they can track the scan
 
 	return nil
 }

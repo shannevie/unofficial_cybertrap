@@ -17,17 +17,12 @@ COPY . .
 # Build the domains_api binary
 RUN go build -o /bin/domains_api ./cmd/domains_api
 
-# Build the artefacts_api binary
-# RUN go build -o /bin/artefacts_api ./cmd/artefacts_api
-
 # Build the nuclei_scanner binary
-# RUN go build -o /bin/nuclei_scanner ./cmd/nuclei_scanner
+RUN go build -o /bin/nuclei_scanner ./cmd/nuclei_scanner
 
 # Create a minimal runtime image
 FROM alpine:latest
 
 # Copy binaries from the builder stage
 COPY --from=builder /bin/domains_api /bin/domains_api
-
-# COPY --from=builder /bin/artefacts_api /bin/artefacts_api
-# COPY --from=builder /bin/nuclei_scanner /bin/nuclei_scanner
+COPY --from=builder /bin/nuclei_scanner /bin/nuclei_scanner

@@ -6,9 +6,10 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
@@ -16,12 +17,7 @@ type S3Helper struct {
 	client *s3.Client
 }
 
-func NewS3Helper() (*S3Helper, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		return nil, fmt.Errorf("failed to load AWS config: %w", err)
-	}
-
+func NewS3Helper(cfg aws.Config) (*S3Helper, error) {
 	client := s3.NewFromConfig(cfg)
 	return &S3Helper{client: client}, nil
 }
@@ -32,7 +28,7 @@ func (s *S3Helper) DownloadFileFromURL(s3URL, dest string) error {
 		return fmt.Errorf("invalid S3 URL: %w", err)
 	}
 
-	bucket := parsedURL.Host
+	bucket := parsedURL.Host[:strings.Index(parsedURL.Host, ".")]
 	key := parsedURL.Path[1:]
 
 	input := &s3.GetObjectInput{
@@ -46,6 +42,12 @@ func (s *S3Helper) DownloadFileFromURL(s3URL, dest string) error {
 	}
 	defer result.Body.Close()
 
+	// Ensure the directory exists
+	dir := filepath.Dir(dest)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
+	}
+
 	file, err := os.Create(dest)
 	if err != nil {
 		return fmt.Errorf("failed to create file: %w", err)
@@ -57,13 +59,5 @@ func (s *S3Helper) DownloadFileFromURL(s3URL, dest string) error {
 		return fmt.Errorf("failed to write file to local destination: %w", err)
 	}
 
-	return nil
-}
-
-func (s *S3Helper) DeleteFile(filepath string) error {
-	err := os.Remove(filepath)
-	if err != nil {
-		return fmt.Errorf("failed to delete file: %w", err)
-	}
 	return nil
 }

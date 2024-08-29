@@ -2,7 +2,7 @@ import AcmeLogo from '@/app/ui/components/acme-logo';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { lusitana } from '@/app/ui/components/fonts';
-import Grab from './ui/grab.png'
+import Grab from './ui/components/grab.png'
 import Image from 'next/image';
 
 export default function Page() {

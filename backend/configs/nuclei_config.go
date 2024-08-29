@@ -8,10 +8,17 @@ import (
 )
 
 type NucleiConfig struct {
-	// Server configs
-	RabbitMqUri string `mapstructure:"RABBIT_MQ_URI"`
+	// Aws S3
+	AwsAccessKeyId     string `mapstructure:"AWS_ACCESS_KEY_ID"`
+	AwsSecretAccessKey string `mapstructure:"AWS_SECRET_ACCESS_KEY"`
+	BucketName         string `mapstructure:"BUCKET_NAME"`
+
+	// MongoDB
 	MongoDbUri  string `mapstructure:"MONGO_DB_URI"`
 	MongoDbName string `mapstructure:"MONGO_DB_NAME"`
+
+	// AMQP
+	RabbitMqUri string `mapstructure:"RABBIT_MQ_URI"`
 }
 
 func LoadNucleiConfig(path string) (NucleiConfig, error) {
