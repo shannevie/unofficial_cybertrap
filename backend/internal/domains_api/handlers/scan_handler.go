@@ -60,7 +60,7 @@ func (h *ScansHandler) SingleScanDomain(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *ScansHandler) MultiScanDomain(w http.ResponseWriter, r *http.Request) {
-	req := []dto.ScanDomainRequest{}
+	req := &[]dto.ScanDomainRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
@@ -68,7 +68,7 @@ func (h *ScansHandler) MultiScanDomain(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	err := h.ScansService.ScanMultiDomain(req)
+	err := h.ScansService.ScanMultiDomain(*req)
 	if err != nil {
 		http.Error(w, "Failed to scan domain", http.StatusInternalServerError)
 		return
