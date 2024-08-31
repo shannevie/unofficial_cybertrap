@@ -20,6 +20,7 @@ import (
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/go-chi/cors"
 	appConfig "github.com/shannevie/unofficial_cybertrap/backend/configs"
 	"github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/handlers"
 	r "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/repository"
@@ -63,6 +64,20 @@ func main() {
 
 	// Create router and setup middlewares
 	router := chi.NewRouter()
+
+	// Basic CORS
+	// for more ideas, see: https://developer.github.com/v3/#cross-origin-resource-sharing
+	router.Use(cors.Handler(cors.Options{
+		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"https://*", "http://*"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
+
 	// middleware
 	router.Use(httplog.RequestLogger(log.Logger))
 	router.Use(middleware.Timeout(60 * time.Second))
