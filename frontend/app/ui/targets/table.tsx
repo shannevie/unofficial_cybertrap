@@ -31,8 +31,7 @@ export default function TargetsTable({ query, currentPage }: TargetsTableProps) 
   const router = useRouter();
 
   useEffect(() => {
-    /*
-    const endpoint = '/v1/domains/';
+    const endpoint = 'http://localhost:5000/v1/domains';
 
     fetch(endpoint)
       .then(response => {
@@ -48,7 +47,6 @@ export default function TargetsTable({ query, currentPage }: TargetsTableProps) 
       .catch(error => {
         console.error('Error fetching domains:', error);
       });
-    */
   }, []); // Run only once on component mount
 
   const handleViewDetails = (target: string) => {
