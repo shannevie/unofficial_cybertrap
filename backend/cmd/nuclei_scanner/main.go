@@ -302,16 +302,32 @@ func main() {
 			}
 			log.Info().Msg("Scan completed")
 			// Loop the scan results and parse them into a json
-			// for _, result := range scanResults {
-			// 	// Convert the result to a json
-			// 	resultJSON, err := json.Marshal(result)
-			// 	if err != nil {
-			// 		log.Error().Err(err).Msg("Failed to marshal result")
-			// 		return
-			// 	}
+			for _, result := range scanResults {
+				// Convert the result to a json
+				resultJSON, err := json.Marshal(result)
+				if err != nil {
+					log.Error().Err(err).Msg("Failed to marshal result")
+					return
+				}
 
-			// 	// TODO: Upload the results to s3 or something or store them into mongodb
-			// }
+				// Write the result to a local temporary file
+				tempDir := os.TempDir()
+				tempFile, err := os.CreateTemp(tempDir, "scan_result_*.json")
+				if err != nil {
+					log.Error().Err(err).Msg("Failed to create temporary file")
+					return
+				}
+				defer tempFile.Close()
+
+				_, err = tempFile.Write(resultJSON)
+				if err != nil {
+					log.Error().Err(err).Msg("Failed to write result to temporary file")
+					return
+				}
+
+				log.Info().Str("file", tempFile.Name()).Msg("Scan result written to temporary file")
+
+			}
 
 			// TODO: Handle the scan results
 			// Update the logs too and upload into s3
