@@ -141,6 +141,10 @@ func main() {
 				return
 			}
 
+			// Set all the default config
+			// nuclei.DefaultConfig.DisableUpdateCheck()
+			nuclei.DefaultConfig.LogAllEvents = true
+
 			// Do a default scan if no templates are provided
 			if len(scanMsg.TemplateIDs) == 0 {
 				// Create the nuclei engine with the template sources
@@ -175,6 +179,35 @@ func main() {
 					msg.Nack(false, true) // Nack the message so another machine can pick it up
 					return
 				}
+				log.Info().Msg("Scan completed")
+				log.Info().Msgf("Scan result len: %d", len(scanResults))
+
+				// Loop the scan results and parse them into a json
+				for _, result := range scanResults {
+					// Convert the result to a json
+					resultJSON, err := json.Marshal(result)
+					if err != nil {
+						log.Error().Err(err).Msg("Failed to marshal result")
+						return
+					}
+
+					// Write the result to a local temporary file
+					tempDir := os.TempDir()
+					tempFile, err := os.CreateTemp(tempDir, "scan_result_*.json")
+					if err != nil {
+						log.Error().Err(err).Msg("Failed to create temporary file")
+						return
+					}
+					defer tempFile.Close()
+
+					_, err = tempFile.Write(resultJSON)
+					if err != nil {
+						log.Error().Err(err).Msg("Failed to write result to temporary file")
+						return
+					}
+
+					log.Info().Str("file", tempFile.Name()).Msg("Scan result written to temporary file")
+				}
 
 				// TODO: Handle the scan results
 				// Update the logs too and upload into s3
@@ -193,7 +226,6 @@ func main() {
 			// Fetch template and domain from MongoDB
 			var wg sync.WaitGroup
 
-			nuclei.DefaultConfig.DisableUpdateCheck()
 			templateFiles := make([]string, 0, len(scanMsg.TemplateIDs))
 			errChan := make(chan error, len(scanMsg.TemplateIDs))
 
@@ -256,12 +288,9 @@ func main() {
 			log.Info().Msg("Successfully downloaded templates")
 
 			// Append the default templates directory to the template files
-			// templateFiles = append(templateFiles, nuclei.DefaultConfig.TemplatesDirectory)
 			templateSources := nuclei.TemplateSources{
 				Templates: templateFiles,
 			}
-
-			nuclei.DefaultConfig.LogAllEvents = true
 
 			// Create the nuclei engine with the template sources
 			ne, err := nuclei.NewNucleiEngineCtx(
@@ -290,10 +319,12 @@ func main() {
 			ne.LoadTargets(targets, false)
 			log.Info().Msg("Successfully loaded targets into nuclei engine")
 			log.Info().Msg("Starting scan")
+
 			// Update the scan results
 			err = ne.ExecuteCallbackWithCtx(context.TODO(), func(event *output.ResultEvent) {
 				scanResults = append(scanResults, *event)
 			})
+
 			if err != nil {
 				log.Error().Err(err).Msg("Failed to execute scan")
 				// Update scan status to "failed"
@@ -312,7 +343,7 @@ func main() {
 
 				// Write the result to a local temporary file
 				tempDir := os.TempDir()
-				tempFile, err := os.CreateTemp(tempDir, "scan_result_*.json")
+				tempFile, err := os.CreateTemp(tempDir, "scan_result_.json")
 				if err != nil {
 					log.Error().Err(err).Msg("Failed to create temporary file")
 					return
