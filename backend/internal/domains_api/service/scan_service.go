@@ -95,18 +95,21 @@ func (s *ScansService) ScanMultiDomain(scanMultiRequests []dto.ScanDomainRequest
 		return errscan
 	}
 
-	// scanArray2 := make([]models.Scan, 0)
+	for _, scan := range scanArray {
 
-	// for _, scan := range scanMultiRequests {
-	// 	scanModel := models.Scan{
-	// 		ID:          primitive.NewObjectID(),
-	// 		DomainID:    scan.DomainID,
-	// 		TemplateIDs: scan.TemplateIDs,
-	// 		Status:      "Pending",
-	// 	}
+		messageJson := rabbitmq.ScanMessage{
+			ScanID:      scan.ID.Hex(),
+			TemplateIDs: scan.TemplateIDs,
+			DomainID:    scan.DomainID,
+		}
 
-	// 	scanArray2 = append(scanArray2, scanModel)
-	// }
+		// Send the message to the queue
+		err := s.mqClient.Publish(messageJson)
+		if err != nil {
+			log.Error().Err(err).Msg("Error sending scan message to queue")
+			return err
+		}
+	}
 
 	return errscan
 }
