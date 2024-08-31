@@ -41,3 +41,17 @@ func (r *ScansRepository) GetAllScans() ([]models.Scan, error) {
 
 	return scans, nil
 }
+
+func (r *ScansRepository) InsertSingleScan(scan models.Scan) error {
+	collection := r.mongoClient.Database(r.mongoDbName).Collection(r.collectionName)
+
+	_, err := collection.InsertOne(context.Background(), scan)
+
+	if err != nil {
+		log.Error().Err(err).Msg("Error inserting scans into MongoDB")
+		return err
+	}
+
+	return nil
+
+}
