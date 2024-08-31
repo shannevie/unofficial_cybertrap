@@ -55,3 +55,19 @@ func (r *ScansRepository) InsertSingleScan(scan models.Scan) error {
 	return nil
 
 }
+
+func (r *ScansRepository) InsertMultiScan(scans []models.Scan) error {
+	collection := r.mongoClient.Database(r.mongoDbName).Collection("scans")
+	var documents []interface{}
+	for _, scan := range scans {
+		documents = append(documents, scan)
+	}
+
+	_, err := collection.InsertMany(context.Background(), documents)
+	if err != nil {
+		log.Error().Err(err).Msg("Error inserting domains into MongoDB")
+		return err
+	}
+
+	return nil
+}

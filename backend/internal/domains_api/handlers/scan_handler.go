@@ -22,7 +22,8 @@ func NewScansHandler(r *chi.Mux, service s.ScansService) {
 
 	r.Route("/v1/scans", func(r chi.Router) {
 		r.Get("/", handler.GetAllScans)
-		r.Post("/", handler.ScanDomain)
+		r.Post("/", handler.SingleScanDomain)
+		r.Post("/multi", handler.MultiScanDomain)
 	})
 }
 
@@ -40,7 +41,7 @@ func (h *ScansHandler) GetAllScans(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *ScansHandler) ScanDomain(w http.ResponseWriter, r *http.Request) {
+func (h *ScansHandler) SingleScanDomain(w http.ResponseWriter, r *http.Request) {
 	req := &dto.ScanDomainRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
@@ -50,6 +51,24 @@ func (h *ScansHandler) ScanDomain(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	err := h.ScansService.ScanDomain(req.DomainID, req.TemplateIDs)
+	if err != nil {
+		http.Error(w, "Failed to scan domain", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *ScansHandler) MultiScanDomain(w http.ResponseWriter, r *http.Request) {
+	req := []dto.ScanDomainRequest{}
+
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	err := h.ScansService.ScanMultiDomain(req)
 	if err != nil {
 		http.Error(w, "Failed to scan domain", http.StatusInternalServerError)
 		return

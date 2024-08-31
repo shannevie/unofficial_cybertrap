@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/rs/zerolog/log"
+	"github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/dto"
 	r "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/repository"
 	"github.com/shannevie/unofficial_cybertrap/backend/internal/rabbitmq"
 	"github.com/shannevie/unofficial_cybertrap/backend/models"
@@ -72,7 +73,40 @@ func (s *ScansService) ScanDomain(domainIdStr string, templateIds []string) erro
 	return nil
 }
 
-// // TO DO : Multi-select
-// func (s *ScansService) ScanDomain(domainId string, templateIds []string) error {
+// TO DO : Multi-select
+func (s *ScansService) ScanMultiDomain(scanMultiRequests []dto.ScanDomainRequest) error {
 
-// }
+	scanArray := make([]models.Scan, 0)
+	for _, scan := range scanMultiRequests {
+		scanModel := models.Scan{
+			ID:          primitive.NewObjectID(),
+			DomainID:    scan.DomainID,
+			TemplateIDs: scan.TemplateIDs,
+			Status:      "Pending",
+		}
+
+		scanArray = append(scanArray, scanModel)
+	}
+
+	// Insert the domains into the database
+	errscan := s.scansRepo.InsertMultiScan(scanArray)
+	if errscan != nil {
+		log.Error().Err(errscan).Msg("Error multi scan into the database")
+		return errscan
+	}
+
+	// scanArray2 := make([]models.Scan, 0)
+
+	// for _, scan := range scanMultiRequests {
+	// 	scanModel := models.Scan{
+	// 		ID:          primitive.NewObjectID(),
+	// 		DomainID:    scan.DomainID,
+	// 		TemplateIDs: scan.TemplateIDs,
+	// 		Status:      "Pending",
+	// 	}
+
+	// 	scanArray2 = append(scanArray2, scanModel)
+	// }
+
+	return errscan
+}
