@@ -20,7 +20,7 @@ export default function TargetModal({ isOpen, onClose }: { isOpen: boolean; onCl
     console.log('Target Name:', targetName);
 
     try {
-      const response = await fetch(`/v1/domains/create?domain=${encodeURIComponent(targetName)}`, {
+      const response = await fetch(`http://localhost:5000/v1/domains/create?domain=${encodeURIComponent(targetName)}`, {
         method: 'POST',
       });
 

@@ -12,27 +12,13 @@ interface Domain {
   UserID: string;
 }
 
-interface TargetsTableProps {
-  query: string;
-  currentPage: number;
-}
-
-// Mock data
-const mockDomains: Domain[] = [
-  { ID: '1', Domain: 'example.com', UploadedAt: '2023-08-01T12:00:00Z', UserID: 'user123' },
-  { ID: '2', Domain: 'testsite.org', UploadedAt: '2023-08-02T15:30:00Z', UserID: 'user456' },
-  { ID: '3', Domain: 'mysite.net', UploadedAt: '2023-08-03T18:45:00Z', UserID: 'user789' },
-  { ID: '4', Domain: 'sampledomain.io', UploadedAt: '2023-08-04T10:15:00Z', UserID: 'user321' },
-  { ID: '5', Domain: 'anotherexample.dev', UploadedAt: '2023-08-05T11:20:00Z', UserID: 'user654' },
-];
-
-export default function TargetsTable({ query, currentPage }: TargetsTableProps) {
-  const [domains, setDomains] = useState<Domain[]>(mockDomains); // Use mock data
+export default function TargetsTable() {
+  const [domains, setDomains] = useState<Domain[]>([]);
   const router = useRouter();
 
   useEffect(() => {
     const endpoint = 'http://localhost:5000/v1/domains';
-
+    
     fetch(endpoint)
       .then(response => {
         console.log(response);
@@ -41,16 +27,16 @@ export default function TargetsTable({ query, currentPage }: TargetsTableProps) 
         }
         return response.json();
       })
-      .then((data: Domain[]) => { // Type the data response
-        setDomains(data); // Store the fetched domains in state
+      .then((data: Domain[]) => {
+        setDomains(data);
       })
       .catch(error => {
         console.error('Error fetching domains:', error);
       });
-  }, []); // Run only once on component mount
+  }, []);
 
   const handleViewDetails = (target: string) => {
-    router.push(`/dashboard/scans/${encodeURIComponent(target)}`);  // Redirect to the target detail page
+    router.push(`/dashboard/scans/${encodeURIComponent(target)}`);
   };
 
   const selectScanEngine = (target: string) => {
