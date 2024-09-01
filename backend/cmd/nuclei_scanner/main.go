@@ -143,7 +143,7 @@ func main() {
 
 			// Set all the default config
 			// nuclei.DefaultConfig.DisableUpdateCheck()
-			nuclei.DefaultConfig.LogAllEvents = true
+			// nuclei.DefaultConfig.LogAllEvents = true
 
 			// Do a default scan if no templates are provided
 			if len(scanMsg.TemplateIDs) == 0 {
@@ -166,6 +166,13 @@ func main() {
 				// Load the targets from the domain fetched from MongoDB
 				targets := []string{domain.Domain}
 				ne.LoadTargets(targets, false)
+				ne.Options().NoHostErrors = true
+				ne.Options().MaxHostError = 10000
+				ne.Options().UpdateTemplates = true
+				ne.Options().Debug = true
+				ne.Options().AutomaticScan = true
+
+				log.Info().Msgf("Should use host error: %t", ne.Options().ShouldUseHostError())
 
 				// Update the scan results
 				err = ne.ExecuteCallbackWithCtx(context.TODO(), func(event *output.ResultEvent) {
@@ -317,6 +324,7 @@ func main() {
 			// Load the targets from the domain fetched from MongoDB
 			targets := []string{domain.Domain}
 			ne.LoadTargets(targets, false)
+
 			log.Info().Msg("Successfully loaded targets into nuclei engine")
 			log.Info().Msg("Starting scan")
 
