@@ -13,7 +13,6 @@ import (
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	nuclei "github.com/projectdiscovery/nuclei/v3/lib"
-	"github.com/projectdiscovery/nuclei/v3/pkg/output"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -69,7 +68,7 @@ func main() {
 		log.Fatal().Err(err).Msg("Failed to load AWS config")
 	}
 
-	s3Helper, err := helpers.NewS3Helper(awsCfg)
+	s3Helper, err := helpers.NewS3Helper(awsCfg, config.BucketName)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to create S3 helper")
 	}
@@ -102,7 +101,6 @@ func main() {
 		go func(msg amqp.Delivery) {
 			defer func() { <-semaphore }() // Release the slot once the goroutine is finished
 
-			scanResults := []output.ResultEvent{}
 			// We ack the message first, so the mq can remove it
 			// then if any processing fails, we simply log it as error into the logs db
 			msg.Ack(false)
@@ -118,6 +116,7 @@ func main() {
 
 			// Create a scan ID for the scan which will be used to store the results
 			scanID, _ := primitive.ObjectIDFromHex(scanMsg.ScanID)
+			nh := helpers.NewNucleiHelper(s3Helper, mongoHelper)
 
 			// Update scan status to "in-progress"
 			err = mongoHelper.UpdateScanStatus(context.Background(), scanID, "in-progress")
@@ -138,94 +137,6 @@ func main() {
 			if err != nil {
 				log.Error().Err(err).Msg("Failed to find domain by ID")
 				// TODO: Log the error into the logs db
-				return
-			}
-
-			// Set all the default config
-			// nuclei.DefaultConfig.DisableUpdateCheck()
-			// nuclei.DefaultConfig.LogAllEvents = true
-
-			// Do a default scan if no templates are provided
-			if len(scanMsg.TemplateIDs) == 0 {
-				// Create the nuclei engine with the template sources
-				ne, err := nuclei.NewNucleiEngineCtx(context.TODO())
-				if err != nil {
-					log.Error().Err(err).Msg("Failed to create Nuclei engine")
-					// TODO: Log the error into the logs db
-					return
-				}
-				defer ne.Close()
-
-				err = ne.LoadAllTemplates()
-				if err != nil {
-					log.Error().Err(err).Msg("Failed to load templates")
-					// TODO: Log the error into the logs db
-					return
-				}
-
-				// Load the targets from the domain fetched from MongoDB
-				targets := []string{domain.Domain}
-				ne.LoadTargets(targets, false)
-				ne.Options().NoHostErrors = true
-				ne.Options().MaxHostError = 10000
-				ne.Options().UpdateTemplates = true
-				ne.Options().Debug = true
-				ne.Options().AutomaticScan = true
-
-				log.Info().Msgf("Should use host error: %t", ne.Options().ShouldUseHostError())
-
-				// Update the scan results
-				err = ne.ExecuteCallbackWithCtx(context.TODO(), func(event *output.ResultEvent) {
-					scanResults = append(scanResults, *event)
-				})
-
-				if err != nil {
-					log.Error().Err(err).Msg("Failed to execute scan")
-					// Update scan status to "failed"
-					mongoHelper.UpdateScanStatus(context.Background(), scanID, "failed")
-					msg.Nack(false, true) // Nack the message so another machine can pick it up
-					return
-				}
-				log.Info().Msg("Scan completed")
-				log.Info().Msgf("Scan result len: %d", len(scanResults))
-
-				// Loop the scan results and parse them into a json
-				for _, result := range scanResults {
-					// Convert the result to a json
-					resultJSON, err := json.Marshal(result)
-					if err != nil {
-						log.Error().Err(err).Msg("Failed to marshal result")
-						return
-					}
-
-					// Write the result to a local temporary file
-					tempDir := os.TempDir()
-					tempFile, err := os.CreateTemp(tempDir, "scan_result_*.json")
-					if err != nil {
-						log.Error().Err(err).Msg("Failed to create temporary file")
-						return
-					}
-					defer tempFile.Close()
-
-					_, err = tempFile.Write(resultJSON)
-					if err != nil {
-						log.Error().Err(err).Msg("Failed to write result to temporary file")
-						return
-					}
-
-					log.Info().Str("file", tempFile.Name()).Msg("Scan result written to temporary file")
-				}
-
-				// TODO: Handle the scan results
-				// Update the logs too and upload into s3
-				// update scan status to "completed"
-				// err = mongoHelper.UpdateScanStatus(context.Background(), scanID, "completed")
-				// if err != nil {
-				// 	log.Error().Err(err).Msg("Failed to update scan status")
-				// 	msg.Nack(false, true) // Nack the message so another machine can pick it up
-				// 	return
-				// }
-
 				return
 			}
 
@@ -294,89 +205,7 @@ func main() {
 
 			log.Info().Msg("Successfully downloaded templates")
 
-			// Append the default templates directory to the template files
-			templateSources := nuclei.TemplateSources{
-				Templates: templateFiles,
-			}
-
-			// Create the nuclei engine with the template sources
-			ne, err := nuclei.NewNucleiEngineCtx(
-				context.TODO(),
-				nuclei.WithTemplatesOrWorkflows(templateSources),
-				nuclei.WithTemplateUpdateCallback(true, func(newVersion string) {
-					log.Info().Msgf("New template version available: %s", newVersion)
-				}),
-			)
-
-			if err != nil {
-				log.Error().Err(err).Msg("Failed to create Nuclei engine")
-				// TODO: Log the error into the logs db
-				return
-			}
-			err = ne.LoadAllTemplates()
-			if err != nil {
-				log.Error().Err(err).Msg("Failed to load templates")
-				// TODO: Log the error into the logs db
-				return
-			}
-			log.Info().Msg("Successfully loaded templates into nuclei engine")
-
-			// Load the targets from the domain fetched from MongoDB
-			targets := []string{domain.Domain}
-			ne.LoadTargets(targets, false)
-
-			log.Info().Msg("Successfully loaded targets into nuclei engine")
-			log.Info().Msg("Starting scan")
-
-			// Update the scan results
-			err = ne.ExecuteCallbackWithCtx(context.TODO(), func(event *output.ResultEvent) {
-				scanResults = append(scanResults, *event)
-			})
-
-			if err != nil {
-				log.Error().Err(err).Msg("Failed to execute scan")
-				// Update scan status to "failed"
-				mongoHelper.UpdateScanStatus(context.Background(), scanID, "failed")
-				return
-			}
-			log.Info().Msg("Scan completed")
-			// Loop the scan results and parse them into a json
-			for _, result := range scanResults {
-				// Convert the result to a json
-				resultJSON, err := json.Marshal(result)
-				if err != nil {
-					log.Error().Err(err).Msg("Failed to marshal result")
-					return
-				}
-
-				// Write the result to a local temporary file
-				tempDir := os.TempDir()
-				tempFile, err := os.CreateTemp(tempDir, "scan_result_.json")
-				if err != nil {
-					log.Error().Err(err).Msg("Failed to create temporary file")
-					return
-				}
-				defer tempFile.Close()
-
-				_, err = tempFile.Write(resultJSON)
-				if err != nil {
-					log.Error().Err(err).Msg("Failed to write result to temporary file")
-					return
-				}
-
-				log.Info().Str("file", tempFile.Name()).Msg("Scan result written to temporary file")
-
-			}
-
-			// TODO: Handle the scan results
-			// Update the logs too and upload into s3
-			// update scan status to "completed"
-			// err = mongoHelper.UpdateScanStatus(context.Background(), scanID, "completed")
-			// if err != nil {
-			// 	log.Error().Err(err).Msg("Failed to update scan status")
-			// 	msg.Nack(false, true) // Nack the message so another machine can pick it up
-			// 	return
-			// }
+			nh.ScanWithNuclei(scanID, domain.Domain, templateFiles)
 		}(msg)
 	}
 

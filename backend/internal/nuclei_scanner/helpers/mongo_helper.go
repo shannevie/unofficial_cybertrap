@@ -45,6 +45,22 @@ func (r *MongoHelper) InsertScan(ctx context.Context, scan models.Scan) (primiti
 	return result.InsertedID.(primitive.ObjectID), nil
 }
 
+// UpdateScanResult overwrites the scan model with the new scan result
+func (r *MongoHelper) UpdateScanResult(ctx context.Context, scan models.Scan) error {
+	collection := r.client.Database(r.database).Collection(ScansCollection)
+	filter := bson.M{"_id": scan.ID}
+	update := bson.M{"$set": scan}
+
+	_, err := collection.ReplaceOne(ctx, filter, update)
+	if err != nil {
+		r.logger.Error().Err(err).Msg("Failed to update scan result")
+		return err
+	}
+
+	return nil
+}
+
+
 func (r *MongoHelper) UpdateScanStatus(ctx context.Context, scanID primitive.ObjectID, status string) error {
 	collection := r.client.Database(r.database).Collection(ScansCollection)
 	filter := bson.M{"_id": scanID}

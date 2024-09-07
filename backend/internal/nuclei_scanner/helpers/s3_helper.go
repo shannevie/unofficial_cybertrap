@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -10,16 +11,19 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/rs/zerolog/log"
 )
 
 type S3Helper struct {
-	client *s3.Client
+	client     *s3.Client
+	bucketName string
 }
 
-func NewS3Helper(cfg aws.Config) (*S3Helper, error) {
+func NewS3Helper(cfg aws.Config, bucketName string) (*S3Helper, error) {
 	client := s3.NewFromConfig(cfg)
-	return &S3Helper{client: client}, nil
+	return &S3Helper{client: client, bucketName: bucketName}, nil
 }
 
 func (s *S3Helper) DownloadFileFromURL(s3URL, dest string) error {
@@ -60,4 +64,21 @@ func (s *S3Helper) DownloadFileFromURL(s3URL, dest string) error {
 	}
 
 	return nil
+}
+
+func (s *S3Helper) UploadToS3(file *bytes.Reader, filename string) (string, error) {
+	uploader := manager.NewUploader(s.client)
+
+	result, err := uploader.Upload(context.TODO(), &s3.PutObjectInput{
+		Bucket: &s.bucketName,
+		Key:    &filename,
+		Body:   file,
+	})
+
+	if err != nil {
+		log.Error().Err(err).Msg("Error uploading file to S3")
+		return "", err
+	}
+
+	return result.Location, nil
 }
