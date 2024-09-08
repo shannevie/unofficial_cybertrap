@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 
 import React from 'react';
 import DashboardCard from "@/components/dashboard/DashboardCard";;
+import AnalyticsChart from '@/components/dashboard/AnalyticsChart';
 
 const scans = [
     {
@@ -58,15 +59,29 @@ const TargetDetailPage: React.FC = () => {
         <h1 className="text-2xl font-bold">Scan Summary</h1>
         <p className="mt-4">Target Name: {target}</p>
         {/* Add more details about the target as needed */}
-      </div>
+      
 
-      <div className='flex flex-col md:flex-row justify-between gap-5 mb-5'>
-      <DashboardCard
-        title='Subdomains Discovered'
-        count={100}
-        tag="Active domains"
-      />
-    </div>   
+        <div className='flex flex-col md:flex-row justify-between gap-5 mb-5'>
+        <DashboardCard
+          title='Subdomains Discovered'
+          count={100}
+          tag="Active domains"
+        />
+        <DashboardCard
+          title='Endpoints Discovered'
+          count={100}
+          tag="Active endpoints"
+        />   
+        <DashboardCard
+          title='Vulnerabilities Discovered'
+          count={100}
+          tag="Active domains"
+        />   
+      </div>
+      <div> 
+        <AnalyticsChart />
+      </div>   
+    </div>
     </>
   );
 };
