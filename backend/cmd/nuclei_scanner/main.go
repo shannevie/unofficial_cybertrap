@@ -205,7 +205,7 @@ func main() {
 
 			log.Info().Msg("Successfully downloaded templates")
 
-			nh.ScanWithNuclei(scanID, domain.Domain, templateFiles)
+			nh.ScanWithNuclei(scanID, domain.Domain, domainID.Hex(), templateFiles)
 		}(msg)
 	}
 

@@ -24,7 +24,7 @@ func NewNucleiHelper(s3Helper *S3Helper, mongoHelper *MongoHelper) *NucleiHelper
 	}
 }
 
-func (nh *NucleiHelper) ScanWithNuclei(scanID primitive.ObjectID, domain string, templateFiles []string) {
+func (nh *NucleiHelper) ScanWithNuclei(scanID primitive.ObjectID, domain string, domainID string, templateFiles []string) {
 	// Check the length of templateFiles
 	templateSources := nuclei.TemplateSources{
 		Templates: templateFiles,
@@ -43,6 +43,13 @@ func (nh *NucleiHelper) ScanWithNuclei(scanID primitive.ObjectID, domain string,
 		nh.mongoHelper.UpdateScanStatus(context.Background(), scanID, "failed")
 		return
 	}
+
+	// Disable host errors
+	ne.Options().StatsJSON = true
+	ne.Engine().ExecuterOptions().Options.NoHostErrors = true
+	ne.GetExecuterOptions().Options.NoHostErrors = true
+	ne.Options().StatsJSON = true
+	ne.Options().Verbose = true
 
 	// Load all templates
 	err = ne.LoadAllTemplates()
@@ -88,6 +95,10 @@ func (nh *NucleiHelper) ScanWithNuclei(scanID primitive.ObjectID, domain string,
 		// Once uploaded take the url and update the scan results
 		multipartFile := bytes.NewReader(resultJSON)
 		s3URL, err := nh.s3Helper.UploadToS3(multipartFile, result.TemplateID)
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to upload result to s3 for scanID, templateID: " + scanID.Hex() + ", " + result.TemplateID)
+			continue
+		}
 
 		scanResultUrls = append(scanResultUrls, s3URL)
 
@@ -112,15 +123,22 @@ func (nh *NucleiHelper) ScanWithNuclei(scanID primitive.ObjectID, domain string,
 	// Update the scan result with the s3 url
 	scan := models.Scan{
 		ID:          scanID,
-		DomainID:    domain,
+		DomainID:    domainID,
+		Domain:      domain,
 		TemplateIDs: templateFiles,
 		Error:       nil,
 		S3ResultURL: scanResultUrls,
 	}
 
+	log.Info().Msgf("Scan: %+v", scan)
+
+	// FIXME: Updating Uploading the scan results is causing
+	// ERR Failed to update scan result error="replacement document cannot contain keys beginning with '$'"
 	err = nh.mongoHelper.UpdateScanResult(context.Background(), scan)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to update scan result")
+		nh.mongoHelper.UpdateScanStatus(context.Background(), scanID, "failed")
+		return
 	}
 
 	log.Info().Msg("Completed scan and updated scan result for scanID: " + scanID.Hex())
