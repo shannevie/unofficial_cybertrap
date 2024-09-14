@@ -71,3 +71,17 @@ func (r *ScansRepository) InsertMultiScan(scans []models.Scan) error {
 
 	return nil
 }
+
+func (r *ScansRepository) CreateScheduleScanRecord(scheduledscan models.ScheduleScan) error {
+	collection := r.mongoClient.Database(r.mongoDbName).Collection("ScheduledScans")
+
+	_, err := collection.InsertOne(context.Background(), scheduledscan)
+
+	if err != nil {
+		log.Error().Err(err).Msg("Error inserting scheduled scans into MongoDB")
+		return err
+	}
+
+	return nil
+
+}
