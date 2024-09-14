@@ -34,13 +34,10 @@ func (s *ScansService) GetAllScans() ([]models.Scan, error) {
 
 // TODO: Send the id and template ids to the scanner service
 func (s *ScansService) ScanDomain(domainIdStr string, templateIds []string) error {
-	// TODO: Check if the domain and the template ids are valid before sending to the scanner
-
-	// TODO: upload to mongodb this scan ID with a scan status of pending
-	ScanID := primitive.NewObjectID().Hex()
+	ScanID := primitive.NewObjectID()
 
 	scanModel := models.Scan{
-		ID:          primitive.NewObjectID(),
+		ID:          ScanID,
 		DomainID:    domainIdStr,
 		TemplateIDs: templateIds,
 		Status:      "Pending",
@@ -49,7 +46,7 @@ func (s *ScansService) ScanDomain(domainIdStr string, templateIds []string) erro
 	// This will send to rabbitmq to be picked up by the scanner
 	// Create a new scan record in the database
 	messageJson := rabbitmq.ScanMessage{
-		ScanID:      ScanID,
+		ScanID:      ScanID.Hex(),
 		TemplateIDs: templateIds,
 		DomainID:    domainIdStr,
 	}
