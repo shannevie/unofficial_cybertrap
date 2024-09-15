@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/pagination"
 import FilterByString from '@/components/ui/filterString'
 import FilterByDropdown from '@/components/ui/filterDropdown'
+import SortButton from '@/components/ui/sortButton'
 
-
+// mock data to be removed
 type Scan = {
   ID: string
   DomainID: string
@@ -92,6 +93,10 @@ export default function ScanResultsTable() {
     templateID: '',
     status: ''
   })
+  const [sortConfig, setSortConfig] = useState({
+    key: 'ScanDate',
+    direction: 'desc'
+  })
 
   useEffect(() => {
     fetchScans()
@@ -127,6 +132,22 @@ export default function ScanResultsTable() {
     //   console.error('Error fetching scans:', error)
     // }
   }  
+
+  // Apply sorting to all scans
+  const handleSort = (key: string) => {
+    let direction = 'asc'
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc'
+    }
+    setSortConfig({ key, direction })
+
+    const sortedScans = [...filteredScans].sort((a, b) => {
+      const aValue = key === 'ScanDate' ? new Date(a[key]) : a[key]
+      const bValue = key === 'ScanDate' ? new Date(b[key]) : b[key]
+      return direction === 'asc' ? aValue - bValue : bValue - aValue
+    })
+    setFilteredScans(sortedScans)
+  }
   
   // Apply filter to scan based on the selected filter
   const applyFilters = () => {
@@ -160,18 +181,18 @@ export default function ScanResultsTable() {
 
     setFilteredScans(filtered)
     console.log(filtered)
-    setCurrentPage(1) // Reset to the first page on filter
+    setCurrentPage(1) 
   }
   const handleFilter = (filterType: string, filterValue: string) => {
     setFilters(prevFilters => ({
       ...prevFilters,
       [filterType]: filterValue
     }))
-  } //TODO: add reset filter function here in handleFilter ?
+  } 
   const handleViewDetails = (scanId: string) => {
     router.push(`/dashboard/scans/${encodeURIComponent(scanId)}`)
   }
-
+  // Reset filter and results
   const resetFilters = () => {
     setFilters({
       domain: '',
@@ -273,7 +294,12 @@ export default function ScanResultsTable() {
                   Template IDs
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Scan Date
+                  <SortButton
+                    sortKey="ScanDate"
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                    label="Scan Date"
+                  />
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   Status
