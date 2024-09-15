@@ -128,12 +128,9 @@ func (nh *NucleiHelper) ScanWithNuclei(scanID primitive.ObjectID, domain string,
 		TemplateIDs: templateFiles,
 		Error:       nil,
 		S3ResultURL: scanResultUrls,
+		Status:      "completed",
 	}
 
-	log.Info().Msgf("Scan: %+v", scan)
-
-	// FIXME: Updating Uploading the scan results is causing
-	// ERR Failed to update scan result error="replacement document cannot contain keys beginning with '$'"
 	err = nh.mongoHelper.UpdateScanResult(context.Background(), scan)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to update scan result")

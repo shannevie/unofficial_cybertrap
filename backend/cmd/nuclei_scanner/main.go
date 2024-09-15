@@ -43,7 +43,7 @@ func main() {
 	defer mongoClient.Disconnect(context.Background())
 
 	// Initialize MongoDB repository
-	mongoHelper := helpers.NewMongoHelper(mongoClient, config.MongoDbName, log.Logger)
+	mongoHelper := helpers.NewMongoHelper(mongoClient, config.MongoDbName)
 	log.Info().Msg("MongoDB client initialized")
 
 	// Initialize RabbitMQ client
