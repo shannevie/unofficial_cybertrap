@@ -41,13 +41,13 @@ export default function TargetModal({ isOpen, onClose, onTargetAdded }: { isOpen
         onClose();
         toast({
           title: "Success",
-          description: "Target added successfully.",
+          description: "Target added successfully!",
         });
       } else {
         console.error('Failed to create domain');
         toast({
           title: "Error",
-          description: "Failed to create domain. Please try again.",
+          description: "Failed to create domain! Please try again.",
           variant: "destructive",
         });
       }
@@ -55,7 +55,7 @@ export default function TargetModal({ isOpen, onClose, onTargetAdded }: { isOpen
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        description: "An unexpected error occurred! Please try again.",
         variant: "destructive",
       });
     }
