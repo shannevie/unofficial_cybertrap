@@ -12,9 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function TargetModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export default function TargetModal({ isOpen, onClose, onTargetAdded }: { isOpen: boolean; onClose: () => void; onTargetAdded: () => void }) {
   const [targetName, setTargetName] = useState('');
-  const [description, setDescription] = useState('');
 
   const handleSubmit = async () => {
     console.log('Target Name:', targetName);
@@ -26,6 +25,7 @@ export default function TargetModal({ isOpen, onClose }: { isOpen: boolean; onCl
 
       if (response.status === 201) {
         console.log('Domain successfully created');
+        onTargetAdded(); // Notify parent component of the new target
         onClose(); 
       } else {
         console.error('Failed to create domain');

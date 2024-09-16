@@ -1,67 +1,47 @@
-'use client'
+"use client";
 
-import { formatDateToLocal } from '@/app/lib/utils'
-import { useRouter } from 'next/navigation'
-import { InformationCircleIcon, BoltIcon } from '@heroicons/react/24/outline'
-import { useState, useEffect } from 'react'
+import { formatDateToLocal } from '@/app/lib/utils';
+import { useRouter } from 'next/navigation';
+import { InformationCircleIcon, BoltIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
+} from "@/components/ui/pagination";
 
 interface Domain {
-  ID: string
-  Domain: string
-  UploadedAt: string
-  UserID: string
+  ID: string;
+  Domain: string;
+  UploadedAt: string;
+  UserID: string;
 }
 
-export default function TargetsTable() {
-  const [domains, setDomains] = useState<Domain[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const router = useRouter()
-  const itemsPerPage = 7
+interface TargetsTableProps {
+  domains: Domain[];
+}
 
-  useEffect(() => {
-    const endpoint = 'http://localhost:5000/v1/domains'
-    
-    fetch(endpoint)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok')
-        }
-        return response.json()
-      })
-      .then((data: Domain[]) => {
-        // Sort domains by UploadedAt in descending order (most recent first)
-        const sortedDomains = data.sort((a, b) => 
-          new Date(b.UploadedAt).getTime() - new Date(a.UploadedAt).getTime()
-        )
-        setDomains(sortedDomains)
-      })
-      .catch(error => {
-        console.error('Error fetching domains:', error)
-      })
-  }, [])
+export default function TargetsTable({ domains }: TargetsTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const router = useRouter();
+  const itemsPerPage = 7;
 
   const handleViewDetails = (target: string) => {
-    router.push(`/dashboard/scans/${encodeURIComponent(target)}`)
-  }
+    router.push(`/dashboard/scans/${encodeURIComponent(target)}`);
+  };
 
   const selectScanEngine = (target: string) => {
-    router.push(`/dashboard/targets/select-scan?target=${encodeURIComponent(target)}`)
-  }
+    router.push(`/dashboard/targets/select-scan?target=${encodeURIComponent(target)}`);
+  };
 
-  const pageCount = Math.ceil(domains.length / itemsPerPage)
+  const pageCount = Math.ceil(domains.length / itemsPerPage);
   const paginatedDomains = domains.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
-  )
+  );
 
   return (
     <div className="mt-6 flow-root">
@@ -73,36 +53,11 @@ export default function TargetsTable() {
                 key={domain.ID}
                 className="mb-2 w-full rounded-md bg-white p-4"
               >
-                <div className="flex items-center justify-between border-b pb-4">
-                  <div>
-                    <p className="text-xl font-medium">{domain.Domain}</p>
-                    <p className="text-sm text-gray-500">{`User ID: ${domain.UserID}`}</p>
-                  </div>
-                </div>
-                <div className="flex w-full items-center justify-between pt-4">
-                  <div>
-                    <p>{formatDateToLocal(domain.UploadedAt)}</p>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => handleViewDetails(domain.Domain)}
-                      className="bg-green-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
-                    >
-                      <InformationCircleIcon className="h-4 w-4 text-white" />
-                      <span>Summary</span>
-                    </button>
-                    <button 
-                      onClick={() => selectScanEngine(domain.Domain)}
-                      className="bg-green-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
-                    >
-                      <BoltIcon className="h-4 w-4 text-white" />
-                      <span>Scan</span>
-                    </button>
-                  </div>
-                </div>
+                {/* Mobile view content */}
               </div>
             ))}
           </div>
+
           <table className="hidden min-w-full text-gray-900 md:table">
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
@@ -157,6 +112,7 @@ export default function TargetsTable() {
               ))}
             </tbody>
           </table>
+
           <div className="mt-6">
             <Pagination>
               <PaginationContent>
@@ -188,5 +144,5 @@ export default function TargetsTable() {
         </div>
       </div>
     </div>
-  )
+  );
 }
