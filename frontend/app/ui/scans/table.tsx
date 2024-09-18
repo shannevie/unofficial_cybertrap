@@ -12,7 +12,11 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import FilterByString from '@/components/ui/filterString'
+import FilterByDropdown from '@/components/ui/filterDropdown'
+import SortButton from '@/components/ui/sortButton'
 
+// mock data to be removed
 type Scan = {
   ID: string
   DomainID: string
@@ -24,37 +28,179 @@ type Scan = {
   S3ResultURL: string | null
 }
 
+const mockScans: Scan[] = [
+  {
+    ID: "1",
+    DomainID: "101",
+    Domain: "Target A",
+    TemplateIDs: ["T1", "T2"],
+    ScanDate: "2023-07-01T00:00:00Z",
+    Status: "Completed",
+    Error: null,
+    S3ResultURL: "https://example.com/results/1"
+  },
+  {
+    ID: "2",
+    DomainID: "102",
+    Domain: "Target B",
+    TemplateIDs: ["T3", "T4"],
+    ScanDate: "2023-07-10T00:00:00Z",
+    Status: "Completed",
+    Error: null,
+    S3ResultURL: "https://example.com/results/2"
+  },
+  {
+    ID: "3",
+    DomainID: "103",
+    Domain: "Target C",
+    TemplateIDs: ["T5", "T6"],
+    ScanDate: "2023-07-15T00:00:00Z",
+    Status: "Failed",
+    Error: null,
+    S3ResultURL: "https://example.com/results/3"
+  },
+  {
+    ID: "4",
+    DomainID: "104",
+    Domain: "Target D",
+    TemplateIDs: ["T6", "T7"],
+    ScanDate: "2023-07-20T00:00:00Z",
+    Status: "Completed",
+    Error: null,
+    S3ResultURL: "https://example.com/results/4"
+  },
+  {
+    ID: "5",
+    DomainID: "105",
+    Domain: "Target E",
+    TemplateIDs: ["T8"],
+    ScanDate: "2023-07-25T00:00:00Z",
+    Status: "In Progress",
+    Error: null,
+    S3ResultURL: "https://example.com/results/5"
+  }
+]
+
 export default function ScanResultsTable() {
   const [scans, setScans] = useState<Scan[]>([])
+  const [filteredScans, setFilteredScans] = useState<Scan[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 7
   const router = useRouter()
+
+  const [filters, setFilters] = useState({
+    domain: '',
+    templateID: '',
+    status: ''
+  })
+  const [sortConfig, setSortConfig] = useState({
+    key: 'ScanDate',
+    direction: 'desc'
+  })
 
   useEffect(() => {
     fetchScans()
   }, [])
 
-  const fetchScans = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/v1/scans/')
-      if (!response.ok) {
-        throw new Error('Failed to fetch scans')
-      }
-      const data = await response.json()
-  
+  useEffect(() => {
+    applyFilters()
+  }, [scans, filters])
+
+  //mock scan
+  const fetchScans = () => {
+    const data = mockScans;
+
+  // //for api call to uncomment later
+  // const fetchScans = async () => {
+  //   try {
+      // const response = await fetch('http://localhost:5000/v1/scans/')
+      // console.log(response)
+      // if (!response.ok) {
+      //   throw new Error('Failed to fetch scans')
+      // }
+      // const data = await response.json()
+
+
       // Sort scans by ScanDate in descending order
       const sortedScans = data.sort((a: Scan, b: Scan) => 
         new Date(b.ScanDate).getTime() - new Date(a.ScanDate).getTime()
       )
   
       setScans(sortedScans)
-    } catch (error) {
-      console.error('Error fetching scans:', error)
-    }
+      setFilteredScans(sortedScans)
+    // } catch (error) {
+    //   console.error('Error fetching scans:', error)
+    // }
   }  
 
+  // Apply sorting to all scans
+  const handleSort = (key: string) => {
+    let direction = 'asc'
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc'
+    }
+    setSortConfig({ key, direction })
+
+    const sortedScans = [...filteredScans].sort((a, b) => {
+      const aValue = key === 'ScanDate' ? new Date(a[key]) : a[key]
+      const bValue = key === 'ScanDate' ? new Date(b[key]) : b[key]
+      return direction === 'asc' ? aValue - bValue : bValue - aValue
+    })
+    setFilteredScans(sortedScans)
+  }
+  
+  // Apply filter to scan based on the selected filter
+  const applyFilters = () => {
+    let filtered = mockScans
+    console.log('apply filter function')
+    console.log(filters)
+    if (filters.domain) {
+      console.log('domain',filters.domain)
+      filtered = filtered.filter(scan =>
+        scan.Domain.toLowerCase().includes(filters.domain.toLowerCase())
+      )
+    }
+
+    if (filters.templateID) {
+      console.log('template', filters.templateID)
+      filtered = filtered.filter(scan =>
+        scan.TemplateIDs.some(templateID =>
+          templateID.toLowerCase().includes(filters.templateID.toLowerCase())
+        )
+      )
+    }
+
+    if (filters.status) {
+      console.log('status',filters.status)
+      filtered = filtered.filter(scan =>
+        scan.Status.toLowerCase().includes(filters.status.toLowerCase())
+      )
+      console.log('apply status function')
+      console.log(filters.status)
+    }
+
+    setFilteredScans(filtered)
+    console.log(filtered)
+    setCurrentPage(1) 
+  }
+  const handleFilter = (filterType: string, filterValue: string) => {
+    setFilters(prevFilters => ({
+      ...prevFilters,
+      [filterType]: filterValue
+    }))
+  } 
   const handleViewDetails = (scanId: string) => {
     router.push(`/dashboard/scans/${encodeURIComponent(scanId)}`)
+  }
+  // Reset filter and results
+  const resetFilters = () => {
+    setFilters({
+      domain: '',
+      templateID: '',
+      status: ''
+    });
+    setFilteredScans(scans);
+    setCurrentPage(1);
   }
 
   const getStatusBadge = (status: string) => {
@@ -73,7 +219,7 @@ export default function ScanResultsTable() {
   }
 
   const pageCount = Math.ceil(scans.length / itemsPerPage)
-  const paginatedScans = scans.slice(
+  const paginatedScans = filteredScans.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   )
@@ -111,17 +257,49 @@ export default function ScanResultsTable() {
               </div>
             ))}
           </div>
+          <div>
+            <FilterByString
+              filterType="domain"
+              placeholder="Filter by Domain"
+              onFilter={handleFilter}
+              value={filters.domain}
+            />    
+            <FilterByString
+              filterType="templateID"
+              placeholder="Filter by Template ID"
+              onFilter={handleFilter}
+              value={filters.templateID}
+            />  
+            <FilterByDropdown 
+              filterType="status"
+              placeholder="Filter By Status" 
+              onFilter={handleFilter}
+              value={filters.status}
+            /> 
+            <button
+                // onClick={() => setFilteredScans(scans)}
+                onClick={resetFilters}
+                className="bg-gray-600 text-white px-4 py-2 rounded"
+              >
+                Reset Filters
+              </button>       
+          </div>
           <table className="hidden min-w-full text-gray-900 md:table">
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
-                  Domain
+                Domain
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   Template IDs
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Scan Date
+                  <SortButton
+                    sortKey="ScanDate"
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                    label="Scan Date"
+                  />
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   Status
