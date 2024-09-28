@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 
 	nuclei "github.com/projectdiscovery/nuclei/v3/lib"
+	"github.com/projectdiscovery/nuclei/v3/pkg/model/types/severity"
 	"github.com/projectdiscovery/nuclei/v3/pkg/output"
 	"github.com/rs/zerolog/log"
 	"github.com/shannevie/unofficial_cybertrap/backend/models"
@@ -32,6 +33,10 @@ func (nh *NucleiHelper) ScanWithNuclei(scanID primitive.ObjectID, domain string,
 
 	ne, err := nuclei.NewNucleiEngineCtx(
 		context.TODO(),
+		nuclei.WithNetworkConfig(nuclei.NetworkConfig{
+			DisableMaxHostErr: true,  // This probably doesn't work from what I can see
+			MaxHostError:      10000, // Using a larger number to avoid host errors dying in 30 tries dropping the domain
+		}),
 		nuclei.WithTemplatesOrWorkflows(templateSources),
 		nuclei.WithTemplateUpdateCallback(true, func(newVersion string) {
 			log.Info().Msgf("New template version available: %s", newVersion)
@@ -45,11 +50,13 @@ func (nh *NucleiHelper) ScanWithNuclei(scanID primitive.ObjectID, domain string,
 	}
 
 	// Disable host errors
+	ne.Options().Severities = []severity.Severity{severity.Info, severity.Low, severity.Medium, severity.High, severity.Critical}
 	ne.Options().StatsJSON = true
 	ne.Engine().ExecuterOptions().Options.NoHostErrors = true
 	ne.GetExecuterOptions().Options.NoHostErrors = true
 	ne.Options().StatsJSON = true
 	ne.Options().Verbose = true
+	ne.Options().Debug = true
 
 	// Load all templates
 	err = ne.LoadAllTemplates()
