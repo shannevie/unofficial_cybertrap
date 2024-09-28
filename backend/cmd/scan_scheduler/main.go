@@ -104,8 +104,7 @@ func main() {
 		scanArray = append(scanArray, scanModel)
 	}
 
-	// Insert the domains into the database
-	errscan := scansRepo.InsertMultiScan(scanArray)
+	errscan := scansRepo.InsertMultiScan(scanArray) // update scans to pending
 	if errscan != nil {
 		log.Error().Err(errscan).Msg("Error multi scan into the database")
 		return

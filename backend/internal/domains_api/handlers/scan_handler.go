@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"github.com/gorilla/schema"
 
 	"github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/dto"
 	s "github.com/shannevie/unofficial_cybertrap/backend/internal/domains_api/service"
@@ -93,7 +94,7 @@ func (h *ScansHandler) ScheduleSingleScan(w http.ResponseWriter, r *http.Request
 	}
 
 	// Call to ScansService to save the new scan domain and templates
-	err := h.ScansService.CreateScheduleScanRecord(req.Domain, req.TemplateIDs)
+	err := h.ScansService.CreateScheduleScanRecord(req.Domain, req.StartScan, req.TemplateIDs)
 	if err != nil {
 		http.Error(w, "Failed to create scan record", http.StatusInternalServerError)
 		return
@@ -102,4 +103,21 @@ func (h *ScansHandler) ScheduleSingleScan(w http.ResponseWriter, r *http.Request
 	// Return success response
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Scan record created successfully"))
+}
+
+func (h *ScansHandler) DeleteScheduledScanRequest(w http.ResponseWriter, r *http.Request) {
+	req := &dto.DeleteScheduledScanRequest{}
+
+	if err := schema.NewDecoder().Decode(req, r.URL.Query()); err != nil {
+		http.Error(w, "Invalid query parameters", http.StatusBadRequest)
+		return
+	}
+
+	err := h.ScansService.DeleteScheduledScanRequest(req.ID)
+	if err != nil {
+		http.Error(w, "Failed to delete domains", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

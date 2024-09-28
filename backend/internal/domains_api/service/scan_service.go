@@ -13,15 +13,17 @@ import (
 )
 
 type ScansService struct {
-	scansRepo *r.ScansRepository
-	mqClient  *rabbitmq.RabbitMQClient
+	scansRepo         *r.ScansRepository
+	scheduledScanRepo *r.ScheduledScanRepository
+	mqClient          *rabbitmq.RabbitMQClient
 }
 
 // NewUserUseCase creates a new instance of userUseCase
-func NewScansService(repository *r.ScansRepository, mqClient *rabbitmq.RabbitMQClient) *ScansService {
+func NewScansService(repository *r.ScansRepository, scheduledScanRepo *r.ScheduledScanRepository, mqClient *rabbitmq.RabbitMQClient) *ScansService {
 	return &ScansService{
-		scansRepo: repository,
-		mqClient:  mqClient,
+		scansRepo:         repository,
+		scheduledScanRepo: scheduledScanRepo,
+		mqClient:          mqClient,
 	}
 }
 
@@ -114,7 +116,7 @@ func (s *ScansService) ScanMultiDomain(scanMultiRequests []dto.ScanDomainRequest
 	return errscan
 }
 
-func (s *ScansService) CreateScheduleScanRecord(domainid string, templateIDs []string) error {
+func (s *ScansService) CreateScheduleScanRecord(domainid string, startScan time.Time, templateIDs []string) error {
 	// TODO: Check if the domain and the template ids are valid before sending to the scanner
 
 	// TODO: upload to mongodb this scan ID with a scan status of pending
@@ -124,7 +126,7 @@ func (s *ScansService) CreateScheduleScanRecord(domainid string, templateIDs []s
 		ID:           primitive.NewObjectID(),
 		DomainID:     domainid,
 		TemplatesIDs: templateIDs,
-		StartScan:    time.Now().AddDate(0, 0, 1),
+		StartScan:    startScan,
 	}
 
 	// This will send to rabbitmq to be picked up by the scanner
@@ -136,7 +138,7 @@ func (s *ScansService) CreateScheduleScanRecord(domainid string, templateIDs []s
 	// }
 
 	// Insert the domains into the database
-	errscan := s.scansRepo.CreateScheduleScanRecord(schedulescanModel)
+	errscan := s.scheduledScanRepo.CreateScheduleScanRecord(schedulescanModel)
 	if errscan != nil {
 		log.Error().Err(errscan).Msg("Error single scan into the database")
 		return errscan
@@ -150,6 +152,16 @@ func (s *ScansService) CreateScheduleScanRecord(domainid string, templateIDs []s
 	// }
 
 	// TODO: Return the scan ID to the client so they can track the scan
+
+	return nil
+}
+
+func (s *ScansService) DeleteScheduledScanRequest(id string) error {
+	err := s.scheduledScanRepo.DeleteScheduledScanByID(id)
+	if err != nil {
+		log.Error().Err(err).Msg("Error deleting domain from the database")
+		return err
+	}
 
 	return nil
 }
