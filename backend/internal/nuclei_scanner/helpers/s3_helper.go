@@ -69,6 +69,8 @@ func (s *S3Helper) DownloadFileFromURL(s3URL, dest string) error {
 func (s *S3Helper) UploadToS3(file *bytes.Reader, filename string) (string, error) {
 	uploader := manager.NewUploader(s.client)
 
+	log.Info().Msgf("Uploading file to S3: %s", filename)
+
 	result, err := uploader.Upload(context.TODO(), &s3.PutObjectInput{
 		Bucket: &s.bucketName,
 		Key:    &filename,

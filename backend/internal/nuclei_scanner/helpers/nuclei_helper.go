@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"strconv"
+	"time"
 
 	nuclei "github.com/projectdiscovery/nuclei/v3/lib"
 	"github.com/projectdiscovery/nuclei/v3/pkg/model/types/severity"
@@ -56,7 +58,7 @@ func (nh *NucleiHelper) ScanWithNuclei(scanID primitive.ObjectID, domain string,
 	ne.GetExecuterOptions().Options.NoHostErrors = true
 	ne.Options().StatsJSON = true
 	ne.Options().Verbose = true
-	ne.Options().Debug = true
+	// ne.Options().Debug = true
 
 	// Load all templates
 	err = ne.LoadAllTemplates()
@@ -86,6 +88,8 @@ func (nh *NucleiHelper) ScanWithNuclei(scanID primitive.ObjectID, domain string,
 	}
 	log.Info().Msg("Scan completed")
 
+	log.Info().Msgf("There are %d results", len(scanResults))
+
 	// Loop the scan results and parse them into a json
 	scanResultUrls := []string{}
 
@@ -101,7 +105,13 @@ func (nh *NucleiHelper) ScanWithNuclei(scanID primitive.ObjectID, domain string,
 		// scanID/templateID.json
 		// Once uploaded take the url and update the scan results
 		multipartFile := bytes.NewReader(resultJSON)
-		s3URL, err := nh.s3Helper.UploadToS3(multipartFile, result.TemplateID)
+
+		// Get current timestamp in millis
+		currentTime := time.Now()
+		currentTimeMillis := currentTime.UnixNano() / int64(time.Millisecond)
+		fileName := result.TemplateID + "_" + result.Host + "_" + strconv.FormatInt(currentTimeMillis, 10) + ".json"
+
+		s3URL, err := nh.s3Helper.UploadToS3(multipartFile, fileName)
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to upload result to s3 for scanID, templateID: " + scanID.Hex() + ", " + result.TemplateID)
 			continue
