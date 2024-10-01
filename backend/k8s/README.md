@@ -36,6 +36,12 @@ aws eks update-kubeconfig --name cybertrap-cluster --region ap-southeast-1
 kubectl get nodes
 ```
 
+## Sealing the secrets
+
+Guide to checkout:
+https://dev.to/stack-labs/store-your-kubernetes-secrets-in-git-thanks-to-kubeseal-hello-sealedsecret-2i6h
+
+
 4. Apply the deployment from k8s
 
 ```
