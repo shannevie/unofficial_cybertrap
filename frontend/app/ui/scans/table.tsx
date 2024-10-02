@@ -28,58 +28,6 @@ type Scan = {
   S3ResultURL: string | null
 }
 
-const mockScans: Scan[] = [
-  {
-    ID: "1",
-    DomainID: "101",
-    Domain: "Target A",
-    TemplateIDs: ["T1", "T2"],
-    ScanDate: "2023-07-01T00:00:00Z",
-    Status: "Completed",
-    Error: null,
-    S3ResultURL: "https://example.com/results/1"
-  },
-  {
-    ID: "2",
-    DomainID: "102",
-    Domain: "Target B",
-    TemplateIDs: ["T3", "T4"],
-    ScanDate: "2023-07-10T00:00:00Z",
-    Status: "Completed",
-    Error: null,
-    S3ResultURL: "https://example.com/results/2"
-  },
-  {
-    ID: "3",
-    DomainID: "103",
-    Domain: "Target C",
-    TemplateIDs: ["T5", "T6"],
-    ScanDate: "2023-07-15T00:00:00Z",
-    Status: "Failed",
-    Error: null,
-    S3ResultURL: "https://example.com/results/3"
-  },
-  {
-    ID: "4",
-    DomainID: "104",
-    Domain: "Target D",
-    TemplateIDs: ["T6", "T7"],
-    ScanDate: "2023-07-20T00:00:00Z",
-    Status: "Completed",
-    Error: null,
-    S3ResultURL: "https://example.com/results/4"
-  },
-  {
-    ID: "5",
-    DomainID: "105",
-    Domain: "Target E",
-    TemplateIDs: ["T8"],
-    ScanDate: "2023-07-25T00:00:00Z",
-    Status: "In Progress",
-    Error: null,
-    S3ResultURL: "https://example.com/results/5"
-  }
-]
 
 export default function ScanResultsTable() {
   const [scans, setScans] = useState<Scan[]>([])
@@ -103,22 +51,18 @@ export default function ScanResultsTable() {
   }, [])
 
   useEffect(() => {
-    applyFilters()
+    applyFilters(scans)
   }, [scans, filters])
 
-  //mock scan
-  const fetchScans = () => {
-    const data = mockScans;
 
-  // //for api call to uncomment later
-  // const fetchScans = async () => {
-  //   try {
-      // const response = await fetch('http://localhost:5000/v1/scans/')
-      // console.log(response)
-      // if (!response.ok) {
-      //   throw new Error('Failed to fetch scans')
-      // }
-      // const data = await response.json()
+  const fetchScans = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/v1/scans/')
+      console.log('hi', response)
+      if (!response.ok) {
+        throw new Error('Failed to fetch scans')
+      }
+      const data = await response.json()
 
 
       // Sort scans by ScanDate in descending order
@@ -128,9 +72,9 @@ export default function ScanResultsTable() {
   
       setScans(sortedScans)
       setFilteredScans(sortedScans)
-    // } catch (error) {
-    //   console.error('Error fetching scans:', error)
-    // }
+    } catch (error) {
+      console.error('Error fetching scans:', error)
+    }
   }  
 
   // Apply sorting to all scans
@@ -147,11 +91,12 @@ export default function ScanResultsTable() {
       return direction === 'asc' ? aValue - bValue : bValue - aValue
     })
     setFilteredScans(sortedScans)
+    console.log(filteredScans, 'set scans')
   }
   
   // Apply filter to scan based on the selected filter
-  const applyFilters = () => {
-    let filtered = mockScans
+  const applyFilters = (sortedScans) => {
+    let filtered = sortedScans
     console.log('apply filter function')
     console.log(filters)
     if (filters.domain) {
@@ -217,7 +162,7 @@ export default function ScanResultsTable() {
         return <span className="bg-gray-300 text-white px-2 py-1 rounded">Unknown</span>
     }
   }
-
+  console.log('test', filteredScans)
   const pageCount = Math.ceil(scans.length / itemsPerPage)
   const paginatedScans = filteredScans.slice(
     (currentPage - 1) * itemsPerPage,
