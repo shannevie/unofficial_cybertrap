@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -8,20 +8,23 @@ import { format } from 'date-fns';
 import DomainSearch from './DomainSearch';
 import TemplateSearch from './TemplateSearch';
 
-// TODO: add API to retrieve domain and templates for selection
-const domains = [
-  {ID: "1", DomainID: "101", Domain: "Target A"},
-  {ID: "2", DomainID: "102", Domain: "Target B"},
-  {ID: "3", DomainID: "103", Domain: "Target C"},
-  {ID: "4", DomainID: "104", Domain: "Target D"},
-  {ID: "5", DomainID: "105", Domain: "Target E",}
-]
+interface Domain {
+  ID: string;
+  Domain: string;
+  UploadedAt: string;
+  UserID: string;
+}
+interface Template {
+  ID: string;
+  TemplateID: string;
+  Name: string;
+  Description: string;
+  S3URL: string;
+  Metadata: null | any;
+  Type: string;
+  CreatedAt: string;
+}
 
-const templates = [
-  { id: 'template1', name: 'Template 1' },
-  { id: 'template2', name: 'Template 2' },
-  { id: 'template3', name: 'Template 3' },
-];
 
 type ScheduleScanFormProps = {
   onSubmit: (formData: any) => void;
@@ -32,7 +35,46 @@ export default function ScheduleScanForm({ onSubmit }: ScheduleScanFormProps) {
   const [selectedTemplates, setSelectedTemplates] = useState<any[]>([])
   const [scanDate, setScanDate] = useState<Date | null>(null);
 
-  
+  //domains
+  const [domains, setDomains] = useState<Domain[]>([]);
+  const fetchDomains = async () => {
+    const endpoint = 'http://localhost:5000/v1/domains';
+    try {
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data: Domain[] = await response.json();
+      setDomains(data);
+      console.log('domain', data);
+    } catch (error) {
+      console.error('Error fetching domains:', error);
+    }
+  };
+  useEffect(() => {
+    fetchDomains();
+  }, []);
+
+  //templates
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const fetchTemplates = async () => {
+    const endpoint = 'http://localhost:5000/v1/templates';
+    try {
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data: Template[] = await response.json();
+      setTemplates(data);
+      console.log('template', data);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    }
+  }
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
   const handleTemplateSelect = (template: any) => {
     setSelectedTemplates((prev) => [...prev, template]);
   };
@@ -43,6 +85,7 @@ export default function ScheduleScanForm({ onSubmit }: ScheduleScanFormProps) {
     );
   };
 
+  // submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -51,12 +94,13 @@ export default function ScheduleScanForm({ onSubmit }: ScheduleScanFormProps) {
       templateIDs: selectedTemplates,
       startDate: scanDate ? format(scanDate, 'yyyy-MM-dd') : null,
     };
+    console.log('scan submitted: ', scanData);
 
     // onSubmit(scanData);
     setSelectedDomain(null);
     setSelectedTemplates([]);
     setScanDate(null);
-    console.log(scanData);
+    console.log('form submitted', selectedDomain);
 
 
 
