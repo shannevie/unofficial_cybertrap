@@ -13,13 +13,14 @@ import (
 )
 
 type ScansService struct {
+	domainsRepo       *r.DomainsRepository
 	scansRepo         *r.ScansRepository
 	scheduledScanRepo *r.ScheduledScanRepository
 	mqClient          *rabbitmq.RabbitMQClient
 }
 
 // NewUserUseCase creates a new instance of userUseCase
-func NewScansService(repository *r.ScansRepository, scheduledScanRepo *r.ScheduledScanRepository, mqClient *rabbitmq.RabbitMQClient) *ScansService {
+func NewScansService(repository *r.ScansRepository, domainsRepo *r.DomainsRepository, scheduledScanRepo *r.ScheduledScanRepository, mqClient *rabbitmq.RabbitMQClient) *ScansService {
 	return &ScansService{
 		scansRepo:         repository,
 		scheduledScanRepo: scheduledScanRepo,
@@ -37,7 +38,6 @@ func (s *ScansService) GetAllScans() ([]models.Scan, error) {
 	return scans, nil
 }
 
-// TODO: Send the id and template ids to the scanner service
 func (s *ScansService) ScanDomain(domainIdStr string, templateIds []string) error {
 	ScanID := primitive.NewObjectID()
 
@@ -75,7 +75,6 @@ func (s *ScansService) ScanDomain(domainIdStr string, templateIds []string) erro
 	return nil
 }
 
-// TO DO : Multi-select
 func (s *ScansService) ScanMultiDomain(scanMultiRequests []dto.ScanDomainRequest) error {
 
 	scanArray := make([]models.Scan, 0)
@@ -117,10 +116,12 @@ func (s *ScansService) ScanMultiDomain(scanMultiRequests []dto.ScanDomainRequest
 }
 
 func (s *ScansService) CreateScheduleScanRecord(domainid string, startScan time.Time, templateIDs []string) error {
-	// TODO: Check if the domain and the template ids are valid before sending to the scanner
-
-	// TODO: upload to mongodb this scan ID with a scan status of pending
-	// ScanID := primitive.NewObjectID().Hex()
+	// FIXME: fix this array slice issues
+	// _, err := s.domainsRepo.GetDomainByID(domainid)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Error fetching domain from the database")
+	// 	return err
+	// }
 
 	schedulescanModel := models.ScheduleScan{
 		ID:           primitive.NewObjectID(),
@@ -129,27 +130,12 @@ func (s *ScansService) CreateScheduleScanRecord(domainid string, startScan time.
 		StartScan:    startScan,
 	}
 
-	// This will send to rabbitmq to be picked up by the scanner
-	// Create a new scan record in the database
-	// messageJson := rabbitmq.ScanMessage{
-	// 	ScanID:      ScanID,
-	// 	TemplateIDs: templateIds,
-	// 	DomainID:    domainIdStr,
-	// }
-
 	// Insert the domains into the database
 	errscan := s.scheduledScanRepo.CreateScheduleScanRecord(schedulescanModel)
 	if errscan != nil {
 		log.Error().Err(errscan).Msg("Error single scan into the database")
 		return errscan
 	}
-
-	// // Send the message to the queue
-	// err := s.mqClient.Publish(messageJson)
-	// if err != nil {
-	// 	log.Error().Err(err).Msg("Error sending scan message to queue")
-	// 	return err
-	// }
 
 	// TODO: Return the scan ID to the client so they can track the scan
 

@@ -1,13 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 type Template = {
-  id: string;
-  name: string;
-};
-
+  ID: string;
+  TemplateID: string;
+  Name: string;
+  Description: string;
+  S3URL: string;
+  Metadata: null | any;
+  Type: string;
+  CreatedAt: string;
+}
 type TemplateSearchProps = {
   templates: Template[];
   selectedTemplates: Template[];
@@ -17,13 +22,40 @@ type TemplateSearchProps = {
 
 export default function TemplateSearch({ templates, selectedTemplates, onTemplateSelect, onTemplateDeselect }: TemplateSearchProps) {
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [allSelected, setAllSelected] = useState<boolean>(false);
 
   // Filter templates based on the search term
   const filteredTemplates = templates.filter(template =>
-    template.name.toLowerCase().includes(searchTerm.toLowerCase())
+    template.Name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const isSelected = (template: Template) => selectedTemplates.some(t => t.id === template.id);
+  const isSelected = (template: Template) => selectedTemplates.some(t => t.ID === template.ID);
+  
+  // Check if all filtered templates are selected
+  useEffect(() => {
+    const allSelected = filteredTemplates.length > 0 && filteredTemplates.every(template => isSelected(template));
+    setAllSelected(allSelected);
+  }, [filteredTemplates, selectedTemplates]);
+
+  // Toggle select/deselect all
+  const handleToggleSelectAll = () => {
+    if (allSelected) {
+      // Deselect all filtered templates
+      filteredTemplates.forEach(template => {
+        if (isSelected(template)) {
+          onTemplateDeselect(template);
+        }
+      });
+    } else {
+      // Select all filtered templates
+      filteredTemplates.forEach(template => {
+        if (!isSelected(template)) {
+          onTemplateSelect(template);
+        }
+      });
+    }
+    setAllSelected(!allSelected);
+  };
 
   return (
     <Popover>
@@ -37,14 +69,19 @@ export default function TemplateSearch({ templates, selectedTemplates, onTemplat
           onChange={(e) => setSearchTerm(e.target.value)}
           className="mb-4"
         />
+        <div className="flex justify-between mb-2">
+          <Button variant="primary" size="sm" onClick={handleToggleSelectAll}>
+            {allSelected ? 'Deselect All' : 'Select All'}
+          </Button>
+        </div>
         <div className="max-h-48 overflow-y-auto">
           {filteredTemplates.length > 0 ? (
             filteredTemplates.map((template) => (
               <div
-                key={template.id}
+                key={template.ID}
                 className="flex justify-between items-center p-2 hover:bg-gray-100 cursor-pointer"
               >
-                <span>{template.name}</span>
+                <span>{template.Name}</span>
                 {isSelected(template) ? (
                   <Button onClick={() => onTemplateDeselect(template)} variant="secondary" size="sm">Deselect</Button>
                 ) : (

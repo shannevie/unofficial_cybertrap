@@ -43,6 +43,26 @@ func (r *DomainsRepository) GetAllDomains() ([]models.Domain, error) {
 	return domains, nil
 }
 
+// GetDomainByID gets a domain by its ID and return the domain
+func (r *DomainsRepository) GetDomainByID(id string) (*models.Domain, error) {
+	collection := r.mongoClient.Database(r.mongoDbName).Collection(r.collectionName)
+
+	objectId, err := primitive.ObjectIDFromHex(id) // converting to mongodb object id
+	if err != nil {
+		log.Error().Err(err).Msg("Error converting domain ID to Object")
+		return nil, err
+	}
+
+	var domain models.Domain
+	err = collection.FindOne(context.Background(), bson.M{"_id": objectId}).Decode(&domain)
+	if err != nil {
+		log.Error().Err(err).Msg("Error fetching domain from MongoDB")
+		return nil, err
+	}
+
+	return &domain, nil
+}
+
 func (r *DomainsRepository) DeleteDomainById(id string) error {
 	collection := r.mongoClient.Database(r.mongoDbName).Collection(r.collectionName)
 

@@ -58,7 +58,6 @@ func (nh *NucleiHelper) ScanWithNuclei(scanID primitive.ObjectID, domain string,
 	ne.GetExecuterOptions().Options.NoHostErrors = true
 	ne.Options().StatsJSON = true
 	ne.Options().Verbose = true
-	// ne.Options().Debug = true
 
 	// Load all templates
 	err = ne.LoadAllTemplates()
