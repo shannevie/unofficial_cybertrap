@@ -6,6 +6,7 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PlusCircleIcon } from '@heroicons/react/24/outline';
 import TargetModal from '../../ui/components/target-modal';
+import { Input } from '@/components/ui/input';
 
 interface Domain {
   ID: string;
@@ -17,6 +18,7 @@ interface Domain {
 export default function Targets() : JSX.Element {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [domains, setDomains] = useState<Domain[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
@@ -47,11 +49,23 @@ export default function Targets() : JSX.Element {
     handleCloseModal();
   };
 
+  // Filter the domains based on the search term
+  const filteredDomains = domains.filter(domain =>
+    domain.Domain.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div>
       <b>Targets</b>
       
       <div className="flex justify-end my-4">
+        <Input
+            placeholder="Search domain names..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-4 py-2 mb-4 border rounded"
+          />
+
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
             <Button
@@ -66,7 +80,7 @@ export default function Targets() : JSX.Element {
         </Dialog>
       </div>
 
-      <TargetsTable domains={domains} />
+      <TargetsTable domains={filteredDomains} />
     </div>
   );
 }
