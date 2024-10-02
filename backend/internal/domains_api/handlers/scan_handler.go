@@ -25,7 +25,7 @@ func NewScansHandler(r *chi.Mux, service s.ScansService) {
 		r.Get("/", handler.GetAllScans)
 		r.Post("/", handler.SingleScanDomain)
 		r.Post("/multi", handler.MultiScanDomain)
-		r.Post("/schedulesinglescan", handler.ScheduleSingleScan)
+		r.Post("/schedule", handler.ScheduleSingleScan)
 	})
 }
 
@@ -88,13 +88,8 @@ func (h *ScansHandler) ScheduleSingleScan(w http.ResponseWriter, r *http.Request
 	}
 	defer r.Body.Close()
 
-	if req.Domain == "" || len(req.TemplateIDs) == 0 {
-		http.Error(w, "Missing domain or templates", http.StatusBadRequest)
-		return
-	}
-
 	// Call to ScansService to save the new scan domain and templates
-	err := h.ScansService.CreateScheduleScanRecord(req.Domain, req.StartScan, req.TemplateIDs)
+	err := h.ScansService.CreateScheduleScanRecord(req.DomainID, req.StartScan, req.TemplateIDs)
 	if err != nil {
 		http.Error(w, "Failed to create scan record", http.StatusInternalServerError)
 		return

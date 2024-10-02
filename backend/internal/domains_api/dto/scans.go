@@ -8,9 +8,9 @@ type ScanDomainRequest struct {
 }
 
 type ScheduleSingleScanRequest struct {
-	Domain      string    `schema:"domain"`
+	DomainID    string    `schema:"domainId"`
 	TemplateIDs []string  `schema:"templateIds"`
-	StartScan   time.Time `schema:"start_scan"`
+	StartScan   time.Time `schema:"startScan"`
 }
 
 type DeleteScheduledScanRequest struct {
