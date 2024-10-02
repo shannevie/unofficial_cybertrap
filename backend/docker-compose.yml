@@ -1,19 +1,6 @@
 version: '3.8'
 
 services:
-  # rabbitmq:
-  #   image: rabbitmq:3.11-management
-  #   ports:
-  #     - "5672:5672"
-  #   environment:
-  #     - RABBITMQ_DEFAULT_USER=guest
-  #     - RABBITMQ_DEFAULT_PASS=guest
-  #   healthcheck:
-  #     test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-  #     interval: 5s
-  #     timeout: 2s
-  #     retries: 5
-
   domains_api:
     build: .
     command: [ "/bin/domains_api" ]
@@ -21,15 +8,16 @@ services:
       - "5000:5000"
     env_file:
       - .env.domains
-    # depends_on:
-    #   rabbitmq:
-    #     condition: service_healthy
 
   nuclei_scanner:
     build: .
     command: [ "/bin/nuclei_scanner" ]
     env_file:
       - .env.nuclei
-    # depends_on:
-    #   rabbitmq:
-    #     condition: service_healthy
+
+  # schedule_scan_service:
+  #   build: .
+  #   command: [ "/bin/scan_scheduler" ]
+  #   env_file:
+  #     - .env.scheduler
+
