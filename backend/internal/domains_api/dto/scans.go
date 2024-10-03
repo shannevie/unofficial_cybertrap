@@ -1,16 +1,14 @@
 package dto
 
-import "time"
-
 type ScanDomainRequest struct {
 	DomainID    string   `schema:"domainId"`
 	TemplateIDs []string `schema:"templateIds"`
 }
 
 type ScheduleSingleScanRequest struct {
-	DomainID    string    `schema:"domainId"`
-	TemplateIDs []string  `schema:"templateIds"`
-	StartScan   time.Time `schema:"startScan"`
+	DomainID    string   `schema:"domainId"`
+	TemplateIDs []string `schema:"templateIds"`
+	StartScan   string   `schema:"startScan"`
 }
 
 type DeleteScheduledScanRequest struct {

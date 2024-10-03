@@ -25,12 +25,28 @@ func NewScansHandler(r *chi.Mux, service s.ScansService) {
 		r.Get("/", handler.GetAllScans)
 		r.Post("/", handler.SingleScanDomain)
 		r.Post("/multi", handler.MultiScanDomain)
+		r.Get("/schedule", handler.GetAllScheduledScans)
 		r.Post("/schedule", handler.ScheduleSingleScan)
+		r.Delete("/schedule", handler.DeleteScheduledScanRequest)
 	})
 }
 
 func (h *ScansHandler) GetAllScans(w http.ResponseWriter, r *http.Request) {
 	scans, err := h.ScansService.GetAllScans()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Convert to json body and return
+	w.Header().Set("Content-Type", "application/json")
+	// Encode domains and write to response
+	json.NewEncoder(w).Encode(scans)
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *ScansHandler) GetAllScheduledScans(w http.ResponseWriter, r *http.Request) {
+	scans, err := h.ScansService.GetAllScheduledScans()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -110,9 +126,11 @@ func (h *ScansHandler) DeleteScheduledScanRequest(w http.ResponseWriter, r *http
 
 	err := h.ScansService.DeleteScheduledScanRequest(req.ID)
 	if err != nil {
-		http.Error(w, "Failed to delete domains", http.StatusInternalServerError)
+		http.Error(w, "Failed to delete scheduled scan", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Scan record deleted successfully"))
+
 }
