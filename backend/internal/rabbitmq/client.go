@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"crypto/tls"
 	"encoding/json"
 
 	"github.com/rabbitmq/amqp091-go"
@@ -20,7 +21,14 @@ type RabbitMQClient struct {
 }
 
 func NewRabbitMQClient(amqpURL string) (*RabbitMQClient, error) {
-	conn, err := amqp091.Dial(amqpURL)
+	// Parse the AMQP URL
+	// Set up TLS configuration
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: true, // Note: In production, you should use proper certificate verification
+	}
+
+	// Dial with TLS
+	conn, err := amqp091.DialTLS(amqpURL, tlsConfig)
 	if err != nil {
 		log.Logger.Error().Err(err).Msg("Failed to connect to RabbitMQ")
 		return nil, err
