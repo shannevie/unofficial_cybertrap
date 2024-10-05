@@ -23,8 +23,16 @@ type RabbitMQClient struct {
 func NewRabbitMQClient(amqpURL string) (*RabbitMQClient, error) {
 	// Parse the AMQP URL
 	// Set up TLS configuration
+	uri, err := amqp091.ParseURI(amqpURL)
+	if err != nil {
+		log.Logger.Error().Err(err).Msg("Failed to parse AMQP URL")
+		return nil, err
+	}
+	serverName := uri.Host
+
 	tlsConfig := &tls.Config{
-		InsecureSkipVerify: true, // Note: In production, you should use proper certificate verification
+		ServerName: serverName,
+		ClientAuth: tls.RequireAndVerifyClientCert,
 	}
 
 	// Dial with TLS
