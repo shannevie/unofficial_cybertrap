@@ -16,12 +16,13 @@ spec:
     spec:
       containers:
       - name: domains-api
-        image: 897729130899.dkr.ecr.ap-southeast-1.amazonaws.com/cybertrap-backend:backend-api-v0.1.0
+        image: 897729130899.dkr.ecr.ap-southeast-1.amazonaws.com/cybertrap-backend:backend-api-v0.1.1
+        command: ["/bin/domains_api"]
         ports:
         - containerPort: 5000
         env:
         - name: SERVE_ADDRESS
-          value: ":5000"
+          value: "0.0.0.0:5000"
 
         - name: MONGO_DB_URI
           valueFrom:
@@ -29,7 +30,7 @@ spec:
               name: mongodb-secret
               key: uri
         - name: MONGO_DB_NAME
-          value: "cybertrap"
+          value: cybertrap
 
         - name: RABBIT_MQ_URI
           valueFrom:
@@ -49,9 +50,9 @@ spec:
               key: secret-access-key
 
         - name: SCAN_RESULTS_BUCKET_NAME
-          value: "cybertrap-scan-results"
+          value: cybertrap-scan-results
         - name: TEMPLATES_BUCKET_NAME
-          value: "cybertrap-templates-bucket"
+          value: cybertrap-templates-bucket
 ---
 apiVersion: v1
 kind: Service
