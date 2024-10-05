@@ -8,6 +8,32 @@ This README provides instructions on how to set up an Amazon EKS (Elastic Kubern
 2. Install AWS CLI and configure it with your credentials
 3. Install kubectl: https://kubernetes.io/docs/tasks/tools/
 
+## Uploading image to ECR
+
+1. Login to ECR
+
+```
+aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 897729130899.dkr.ecr.ap-southeast-1.amazonaws.com
+```
+
+2. Build the images
+```
+docker-compose build
+```
+
+3. Tag the domains api image
+
+```
+docker tag backend-domains_api 897729130899.dkr.ecr.ap-southeast-1.amazonaws.com/cybertrap-backend:backend-api-v0.1.0 
+```
+
+4. Push the image to ECR
+
+```
+docker push 897729130899.dkr.ecr.ap-southeast-1.amazonaws.com/cybertrap-backend:backend-api-v0.1.0
+```
+
+
 ## Creating the EKS Cluster
 
 1. Create a basic EKS cluster:
