@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
+import { BASE_URL } from "@/data";
 
 interface Template {
   ID: string;
@@ -32,7 +33,7 @@ export default function SelectScan() {
         }
 
         // Fetch templates
-        fetch('http://localhost:5000/v1/templates')
+        fetch(`${BASE_URL}/v1/templates`)
             .then(response => response.json())
             .then(data => setTemplates(data))
             .catch(error => {
@@ -65,7 +66,7 @@ export default function SelectScan() {
         }
 
         try {
-            const response = await fetch('http://localhost:5000/v1/scans', {
+            const response = await fetch(`${BASE_URL}/v1/scans`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

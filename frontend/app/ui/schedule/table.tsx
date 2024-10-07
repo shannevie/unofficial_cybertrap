@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline'; // Import the Heroicon
+import { BASE_URL } from '@/data';
 
 // Define the shape of the data you're fetching
 type ScheduledScan = {
@@ -9,53 +10,43 @@ type ScheduledScan = {
   scanDate: string;
 };
 
-const mockScheduledScans = [
-  {
-    domain: 'example.com',
-    templateIDs: ['T1', 'T2'],
-    scanDate: '2023-10-05T00:00:00Z',
-  },
-  {
-    domain: 'test.com',
-    templateIDs: ['T3'],
-    scanDate: '2023-11-12T00:00:00Z',
-  },
-];
-
-  // Fetch the scheduled scans when the component mounts
-//   useEffect(() => {
-//     async function fetchScans() {
-//       try {
-//         const response = await fetch('/api/scheduled-scans');
-//         if (!response.ok) {
-//           throw new Error('Failed to fetch scans');
-//         }
-//         const data = await response.json();
-//         setScans(data);
-//       } catch (error) {
-//         console.error('Error fetching scheduled scans:', error);
-//       }
-//     }
-//     fetchScans();
-//   }, []);
 
 export default function ScheduleScanTable() {
   const [scans, setScans] = useState<ScheduledScan[]>([]);
 
   // Fetch scheduled scans on component mount
+  // useEffect(() => {
+  //   fetchScans();
+  // }, []);
+
+  // const fetchScans = () => {
+  //   const data = mockScheduledScans;
+  //   setScans(data);
+  // };
+  // Fetch the scheduled scans when the component mounts
+  const fetchScans = async () => {
+    const endpoint = `${BASE_URL}/v1/scans/schedule`;
+    try {
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data: ScheduledScan[] = await response.json();
+      setScans(data);
+      console.log('scan', data);
+    } catch (error) {
+      console.error('Error fetching domains:', error);
+    }
+  };
+
   useEffect(() => {
     fetchScans();
   }, []);
 
-  const fetchScans = () => {
-    const data = mockScheduledScans;
-    setScans(data);
-  };
-
   // Function to delete a scheduled scan
   const handleDelete = async (domain: string) => {
     try {
-      const response = await fetch('/v1/scans/delete', {
+      const response = await fetch(`${BASE_URL}/v1/scans/delete`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -89,9 +80,11 @@ export default function ScheduleScanTable() {
         <tbody>
           {scans.map((scan, index) => (
             <tr key={index} className="border-t">
-              <td className="px-4 py-2">{scan.domain}</td>
-              <td className="px-4 py-2">{scan.templateIDs.join(', ')}</td>
-              <td className="px-4 py-2">{new Date(scan.scanDate).toLocaleDateString()}</td>
+              <td className="px-4 py-2">{scan.ID}</td>
+              <td className="px-4 py-2">{scan.DomainID}</td>
+
+              {/* <td className="px-4 py-2">{scan.TemplateIDs.join(', ')}</td> */}
+              <td className="px-4 py-2">{new Date(scan.StartScan).toLocaleDateString()}</td>
               <td className="px-4 py-2 flex justify-center">
                 <button
                   onClick={() => handleDelete(scan.domain)}

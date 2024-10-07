@@ -15,6 +15,7 @@ import {
 import FilterByString from '@/components/ui/filterString'
 import FilterByDropdown from '@/components/ui/filterDropdown'
 import SortButton from '@/components/ui/sortButton'
+import { BASE_URL } from '@/data'
 
 // mock data to be removed
 type Scan = {
@@ -57,7 +58,7 @@ export default function ScanResultsTable() {
 
   const fetchScans = async () => {
     try {
-      const response = await fetch('http://localhost:5000/v1/scans/')
+      const response = await fetch(`${BASE_URL}/v1/scans/`)
       console.log('hi', response)
       if (!response.ok) {
         throw new Error('Failed to fetch scans')

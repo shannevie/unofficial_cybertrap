@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PlusCircleIcon } from '@heroicons/react/24/outline';
 import TargetModal from '../../ui/components/target-modal';
 import { Input } from '@/components/ui/input';
+import { BASE_URL } from '@/data';
 
 interface Domain {
   ID: string;
@@ -24,7 +25,7 @@ export default function Targets() : JSX.Element {
   const handleCloseModal = () => setIsModalOpen(false);
 
   const fetchDomains = async () => {
-    const endpoint = 'http://localhost:5000/v1/domains';
+    const endpoint = `${BASE_URL}/v1/domains`;
     try {
       const response = await fetch(endpoint);
       if (!response.ok) {

@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
+import { BASE_URL } from '@/data';
 
 export default function TargetModal({ isOpen, onClose, onTargetAdded }: { isOpen: boolean; onClose: () => void; onTargetAdded: () => void }) {
   const [targetName, setTargetName] = useState('');
@@ -31,7 +32,7 @@ export default function TargetModal({ isOpen, onClose, onTargetAdded }: { isOpen
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/v1/domains/create?domain=${encodeURIComponent(targetName)}`, {
+      const response = await fetch(`${BASE_URL}/v1/domains/create?domain=${encodeURIComponent(targetName)}`, {
         method: 'POST',
       });
 

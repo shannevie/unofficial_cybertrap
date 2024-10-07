@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { format } from 'date-fns';
 import DomainSearch from './DomainSearch';
 import TemplateSearch from './TemplateSearch';
+import { BASE_URL } from '@/data';
+import { useState, useEffect } from "react";
 
 interface Domain {
   ID: string;
@@ -38,7 +39,7 @@ export default function ScheduleScanForm({ onSubmit }: ScheduleScanFormProps) {
   //domains
   const [domains, setDomains] = useState<Domain[]>([]);
   const fetchDomains = async () => {
-    const endpoint = 'http://localhost:5000/v1/domains';
+    const endpoint = `${BASE_URL}/v1/domains`;
     try {
       const response = await fetch(endpoint);
       if (!response.ok) {
@@ -58,7 +59,7 @@ export default function ScheduleScanForm({ onSubmit }: ScheduleScanFormProps) {
   //templates
   const [templates, setTemplates] = useState<Template[]>([]);
   const fetchTemplates = async () => {
-    const endpoint = 'http://localhost:5000/v1/templates';
+    const endpoint = `${BASE_URL}/v1/templates`;
     try {
       const response = await fetch(endpoint);
       if (!response.ok) {
@@ -90,17 +91,18 @@ export default function ScheduleScanForm({ onSubmit }: ScheduleScanFormProps) {
     e.preventDefault();
 
     const scanData = {
-      domain: selectedDomain,
-      templateIDs: selectedTemplates,
-      startDate: scanDate ? format(scanDate, 'yyyy-MM-dd') : null,
+      domain_id: selectedDomain?.ID, 
+      template_ids: selectedTemplates.map(template => template.ID), 
+      scanDate: scanDate ? format(scanDate, 'yyyy-MM-dd') : null,
     };
     console.log('scan submitted: ', scanData);
+
 
     // onSubmit(scanData);
     setSelectedDomain(null);
     setSelectedTemplates([]);
     setScanDate(null);
-    console.log('form submitted', selectedDomain);
+    // console.log('form submitted', selectedDomain);
 
 
 
@@ -118,7 +120,31 @@ export default function ScheduleScanForm({ onSubmit }: ScheduleScanFormProps) {
     // } else {
     //   console.error('Error scheduling scan');
     // }
-  };
+
+      try {
+        // POST request to your API
+        const response = await fetch(`${BASE_URL}/v1/scans/schedule`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(scanData),
+        });
+  
+        if (response.ok) {
+          console.log('Scan scheduled successfully');
+          setSelectedDomain(null); // Reset form state
+          setSelectedTemplates([]);
+          setScanDate(null);
+        } else {
+          const errorData = await response.json();
+          console.error('Error scheduling scan:', errorData);
+        }
+      } catch (error) {
+        console.error('Error submitting form:', error);
+      }
+    };
+  
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 mx-lg">
