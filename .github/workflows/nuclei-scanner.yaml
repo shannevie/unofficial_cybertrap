@@ -6,7 +6,7 @@ on:
       - .github/workflows/nuclei-scanner.yml
       - backend/**
 
-name: Backend API build
+name: Nuclei Scanner build
 
 env:
   REGION: ap-southeast-1
