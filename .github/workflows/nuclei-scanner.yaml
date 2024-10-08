@@ -1,7 +1,7 @@
 on:
   push:
     tags:
-      - backend-api-v*
+      - nuclei-scanner-v*
     paths:
       - .github/workflows/nuclei-scanner.yml
       - backend/**

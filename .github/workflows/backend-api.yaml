@@ -47,7 +47,7 @@ jobs:
             --build-arg SERVICE=domains_api \
             --build-arg COMMAND="/bin/domains_api" \
             ./backend
-          docker push $REGISTRY/$REPOSITORY:domains-api-$IMAGE_TAG
+          docker push $REGISTRY/$REPOSITORY:backend-api-$IMAGE_TAG
 
       - name: Clean up directory
         run: rm -rf backend/*
