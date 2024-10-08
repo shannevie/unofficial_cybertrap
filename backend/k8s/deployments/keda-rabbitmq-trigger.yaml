@@ -1,7 +1,7 @@
 apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
 metadata:
-  name: keda-trigger-auth-rabbitmq-conn
+  name: nuclei-scanner-trigger
   namespace: default
 spec:
   secretTargetRef:
@@ -15,11 +15,11 @@ spec:
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
-  name: rabbitmq-scaled-object
+  name: nuclei-scanner
   namespace: default
 spec:
   scaleTargetRef:
-    name: nuclei-scanner-deployment
+    name: nuclei-scanner
   pollingInterval: 5
   cooldownPeriod: 300
   minReplicaCount: 1

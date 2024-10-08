@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: domains-api-deployment
+  name: domains-api
   labels:
     app: domains-api
 spec:
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: domains-api
-        image: 897729130899.dkr.ecr.ap-southeast-1.amazonaws.com/cybertrap-backend:backend-api-v0.1.0
+        image: 897729130899.dkr.ecr.ap-southeast-1.amazonaws.com/cybertrap-backend:domains-api-v0.1.0
         command: ["/bin/domains_api"]
         ports:
         - containerPort: 5000

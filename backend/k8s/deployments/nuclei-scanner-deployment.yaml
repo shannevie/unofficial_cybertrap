@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nuclei-scanner-deployment
+  name: nuclei-scanner
   labels:
     app: nuclei-scanner
 spec:
@@ -20,6 +20,13 @@ spec:
       - name: nuclei-scanner
         image: 897729130899.dkr.ecr.ap-southeast-1.amazonaws.com/cybertrap-backend:nuclei-scanner-v0.1.0
         command: ["/bin/nuclei_scanner"]
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1024Mi"
+          limits:
+            cpu: "1500m"
+            memory: "1536Mi"
         env:
         - name: MAX_CONCURRENT_SCANS
           value: "1"
