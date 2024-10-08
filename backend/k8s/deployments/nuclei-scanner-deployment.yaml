@@ -29,8 +29,10 @@ spec:
             secretKeyRef:
               name: aws-secret
               key: secret-access-key
-        - name: BUCKET_NAME
-          value: "nft-bucket-fractions"
+        - name: SCAN_RESULTS_BUCKET_NAME
+          value: "cybertrap-scan-results"
+        - name: TEMPLATES_BUCKET_NAME
+          value: "cybertrap-templates-bucket"
         
         - name: MONGO_DB_URI
           valueFrom:
