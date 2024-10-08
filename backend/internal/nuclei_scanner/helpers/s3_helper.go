@@ -17,13 +17,14 @@ import (
 )
 
 type S3Helper struct {
-	client     *s3.Client
-	bucketName string
+	client                *s3.Client
+	templateBucketName    string
+	scanResultsBucketName string
 }
 
-func NewS3Helper(cfg aws.Config, bucketName string) (*S3Helper, error) {
+func NewS3Helper(cfg aws.Config, templateBucketName string, scanResultsBucketName string) (*S3Helper, error) {
 	client := s3.NewFromConfig(cfg)
-	return &S3Helper{client: client, bucketName: bucketName}, nil
+	return &S3Helper{client: client, templateBucketName: templateBucketName, scanResultsBucketName: scanResultsBucketName}, nil
 }
 
 func (s *S3Helper) DownloadFileFromURL(s3URL, dest string) error {

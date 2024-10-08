@@ -68,7 +68,7 @@ func main() {
 		log.Fatal().Err(err).Msg("Failed to load AWS config")
 	}
 
-	s3Helper, err := helpers.NewS3Helper(awsCfg, config.BucketName)
+	s3Helper, err := helpers.NewS3Helper(awsCfg, config.TemplatesBucketName, config.ScanResultsBucketName)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to create S3 helper")
 	}
