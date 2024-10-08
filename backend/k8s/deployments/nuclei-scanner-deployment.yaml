@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nuclei-scanner-deployment
+  labels:
+    app: nuclei-scanner
+spec:
+  replicas: 1
+    matchLabels:
+      app: nuclei-scanner
+  template:
+    metadata:
+      labels:
+        app: nuclei-scanner
+    spec:
+      containers:
+      - name: nuclei-scanner
+        image: 897729130899.dkr.ecr.ap-southeast-1.amazonaws.com/cybertrap-backend:nuclei-scanner-v0.1.0
+        command: ["/bin/nuclei_scanner"]
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aws-secret
+              key: access-key-id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aws-secret
+              key: secret-access-key
+        - name: BUCKET_NAME
+          value: "nft-bucket-fractions"
+        
+        - name: MONGO_DB_URI
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: uri
+        - name: MONGO_DB_NAME
+          value: "cybertrap"
+        
+        - name: RABBIT_MQ_URI
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: uri

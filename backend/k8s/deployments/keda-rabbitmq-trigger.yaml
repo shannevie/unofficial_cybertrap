@@ -1,0 +1,34 @@
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-trigger-auth-rabbitmq-conn
+  namespace: default
+spec:
+  secretTargetRef:
+    - parameter: host
+      name: rabbitmq-secret
+      key: uri
+    - parameter: tls
+      name: rabbitmq-secret
+      key: tls
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: rabbitmq-scaled-object
+  namespace: default
+spec:
+  scaleTargetRef:
+    name: nuclei-scanner
+  pollingInterval: 5
+  cooldownPeriod: 300
+  maxReplicaCount: 100
+  triggers:
+  - type: rabbitmq
+    metadata:
+      protocol: amqp
+      queueName: nuclei_scan_queue
+      mode: QueueLength
+      value: "5"
+    authenticationRef:
+      name: keda-trigger-auth-rabbitmq-conn
