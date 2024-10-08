@@ -19,9 +19,10 @@ metadata:
   namespace: default
 spec:
   scaleTargetRef:
-    name: nuclei-scanner
+    name: nuclei-scanner-deployment
   pollingInterval: 5
   cooldownPeriod: 300
+  minReplicaCount: 1
   maxReplicaCount: 100
   triggers:
   - type: rabbitmq
@@ -29,6 +30,6 @@ spec:
       protocol: amqp
       queueName: nuclei_scan_queue
       mode: QueueLength
-      value: "5"
+      value: "1"
     authenticationRef:
       name: keda-trigger-auth-rabbitmq-conn

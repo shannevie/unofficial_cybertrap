@@ -14,11 +14,16 @@ spec:
       labels:
         app: nuclei-scanner
     spec:
+      nodeSelector:
+        kubernetes.io/arch: arm64
       containers:
       - name: nuclei-scanner
         image: 897729130899.dkr.ecr.ap-southeast-1.amazonaws.com/cybertrap-backend:nuclei-scanner-v0.1.0
         command: ["/bin/nuclei_scanner"]
         env:
+        - name: MAX_CONCURRENT_SCANS
+          value: "1"
+
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:

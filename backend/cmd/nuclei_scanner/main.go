@@ -80,7 +80,7 @@ func main() {
 	}
 
 	// Set the maximum number of concurrent scans (customize this value based on your requirements)
-	maxConcurrentScans := 5 // Example: max 5 concurrent scans
+	maxConcurrentScans := config.MaxConcurrentScans // Example: max 5 concurrent scans
 	semaphore := make(chan struct{}, maxConcurrentScans)
 
 	// Signal handling for graceful shutdown

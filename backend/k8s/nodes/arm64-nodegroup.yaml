@@ -1,0 +1,23 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cybertrap-cluster
+  region: ap-southeast-1
+
+managedNodeGroups:
+  - name: arm64-nodes-small
+    instanceType: t4g.small  # This is a smaller ARM64 instance type
+    minSize: 1
+    maxSize: 3
+    desiredCapacity: 2
+    privateNetworking: true
+    labels:
+      lifecycle: ec2-autoscaler
+      aws.amazon.com/spot: "false"
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        ebs: true
+        fsx: true
+        efs: true
