@@ -138,6 +138,18 @@ func (r *RabbitMQClient) Consume() (<-chan amqp091.Delivery, error) {
 	return msgs, nil
 }
 
+func (r *RabbitMQClient) Get() (*amqp091.Delivery, bool, error) {
+	msg, ok, err := r.channel.Get(
+		"nuclei_scan_queue", // queue
+		false,               // auto-ack
+	)
+	if err != nil {
+		log.Logger.Error().Err(err).Msg("Failed to get message from queue")
+		return nil, false, err
+	}
+	return &msg, ok, nil
+}
+
 func (r *RabbitMQClient) Close() {
 	if err := r.channel.Close(); err != nil {
 		log.Logger.Error().Err(err).Msg("Failed to close channel")
