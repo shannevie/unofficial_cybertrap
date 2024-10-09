@@ -22,7 +22,8 @@ interface Template {
 export default function SelectScan() {
     const [templates, setTemplates] = useState<Template[]>([]);
     const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
-    const [scanAllTemplates, setScanAllTemplates] = useState(false); // New state for "Scan All Templates"
+    const [scanAllTemplates, setScanAllTemplates] = useState(false); 
+    const [scanAllTemplatesID, setScanAllTemplatesID] = useState<string>("");
     const [target, setTarget] = useState("");
     const router = useRouter();
     const { toast } = useToast();
@@ -38,7 +39,7 @@ export default function SelectScan() {
             .then(response => response.json())
             .then(data => setTemplates(data))
             .catch(error => {
-                console.error('Error fetching templates:', error);
+                console.log('Error fetching templates:', error);
                 toast({
                     title: "Error",
                     description: "Failed to fetch templates. Please try again.",
@@ -57,19 +58,27 @@ export default function SelectScan() {
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-
-        // Determine the template IDs to send
-        const templateIDsToSend = scanAllTemplates ? [] : selectedTemplates;
-
-        if (!scanAllTemplates && templateIDsToSend.length === 0) {
+    
+        const domainId = target; // Get the target from the URL
+    
+        // Check if we have a valid domainId
+        if (!domainId) {
             toast({
                 title: "Error",
-                description: "Please select at least one template or check 'Scan All Templates'.",
+                description: "Invalid target domain.",
                 variant: "destructive",
             });
             return;
         }
-
+    
+        // Prepare templateIds based on scanAllTemplates state
+        const templateIds = scanAllTemplates ? [] : selectedTemplates;
+        const domainIdScanAll = templates.length > 0 ? templates[0].ID : ""; 
+    
+        // Log the values for debugging
+        console.log("Domain ID:", domainIdScanAll);
+        console.log("Template IDs:", templateIds);
+    
         try {
             const response = await fetch(`${BASE_URL}/v1/scans`, {
                 method: 'POST',
@@ -77,18 +86,18 @@ export default function SelectScan() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    DomainID: target,
-                    TemplateIDs: templateIDsToSend,
+                    domainIdScanAll, // use the domainId
+                    templateIds, // use selected templates or all templates based on checkbox
                 }),
             });
 
+            // console.log('response', response);
+    
             if (response.ok) {
                 toast({
                     title: "Success",
                     description: "Scan initiated successfully.",
                 });
-                // Optionally, redirect to a results page or dashboard
-                // router.push('/scan-results');
             } else {
                 throw new Error('Failed to initiate scan');
             }
@@ -100,7 +109,8 @@ export default function SelectScan() {
                 variant: "destructive",
             });
         }
-    };
+    };    
+
 
     return (
         <>
@@ -138,8 +148,11 @@ export default function SelectScan() {
                         </Button>
                     </form>
                 </div>
+
+                <div>
+                    <Toaster />
+                </div>
             </div>
-            <Toaster />
         </>
     );
 }
