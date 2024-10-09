@@ -144,6 +144,7 @@ func (nh *NucleiHelper) ScanWithNuclei(scanID primitive.ObjectID, domain string,
 		TemplateIDs: templateFiles,
 		Error:       nil,
 		S3ResultURL: scanResultUrls,
+		ScanDate:    time.Now(),
 		Status:      "completed",
 	}
 
