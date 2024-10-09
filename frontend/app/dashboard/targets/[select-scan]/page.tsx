@@ -22,6 +22,7 @@ interface Template {
 export default function SelectScan() {
     const [templates, setTemplates] = useState<Template[]>([]);
     const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
+    const [scanAllTemplates, setScanAllTemplates] = useState(false); // New state for "Scan All Templates"
     const [target, setTarget] = useState("");
     const router = useRouter();
     const { toast } = useToast();
@@ -56,10 +57,14 @@ export default function SelectScan() {
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        if (selectedTemplates.length === 0) {
+
+        // Determine the template IDs to send
+        const templateIDsToSend = scanAllTemplates ? [] : selectedTemplates;
+
+        if (!scanAllTemplates && templateIDsToSend.length === 0) {
             toast({
                 title: "Error",
-                description: "Please select at least one template.",
+                description: "Please select at least one template or check 'Scan All Templates'.",
                 variant: "destructive",
             });
             return;
@@ -73,7 +78,7 @@ export default function SelectScan() {
                 },
                 body: JSON.stringify({
                     DomainID: target,
-                    TemplateIDs: selectedTemplates
+                    TemplateIDs: templateIDsToSend,
                 }),
             });
 
@@ -115,11 +120,19 @@ export default function SelectScan() {
                                     <label htmlFor={template.ID} className="text-gray-700">{template.Name}</label>
                                 </div>
                             ))}
+                            <div className="flex items-center space-x-3">
+                                <Checkbox
+                                    id="scanAllTemplates"
+                                    checked={scanAllTemplates}
+                                    onCheckedChange={setScanAllTemplates}
+                                />
+                                <label htmlFor="scanAllTemplates" className="text-gray-700">Scan All Templates</label>
+                            </div>
                         </div>
                         <Button
                             type="submit"
                             className="w-full py-2 mt-4 text-white bg-green-600 rounded-md hover:bg-green-700"
-                            disabled={selectedTemplates.length === 0}
+                            disabled={selectedTemplates.length === 0 && !scanAllTemplates}
                         >
                             Start Scan
                         </Button>
