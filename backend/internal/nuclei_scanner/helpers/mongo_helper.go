@@ -72,8 +72,7 @@ func (r *MongoHelper) UpdateScanStatus(ctx context.Context, scanID primitive.Obj
 	collection := r.client.Database(r.database).Collection(ScansCollection)
 	filter := bson.M{"_id": scanID}
 	update := bson.M{"$set": bson.M{
-		"status":    status,
-		"scan_date": time.Now(),
+		"status": status,
 	}}
 
 	_, err := collection.UpdateOne(ctx, filter, update)
