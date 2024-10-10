@@ -35,6 +35,7 @@ export default function TemplateSearch({ templates, selectedTemplates, onTemplat
   useEffect(() => {
     const allSelected = filteredTemplates.length > 0 && filteredTemplates.every(template => isSelected(template));
     setAllSelected(allSelected);
+    console.log('selected', allSelected)
   }, [filteredTemplates, selectedTemplates]);
 
   // Toggle select/deselect all
@@ -75,25 +76,33 @@ export default function TemplateSearch({ templates, selectedTemplates, onTemplat
           </Button>
         </div>
         <div className="max-h-48 overflow-y-auto">
+
           {filteredTemplates.length > 0 ? (
             filteredTemplates.map((template) => (
               <div
                 key={template.ID}
                 className="flex justify-between items-center p-2 hover:bg-gray-100 cursor-pointer"
               >
-                <span>{template.Name}</span>
-                {isSelected(template) ? (
-                  <Button onClick={() => onTemplateDeselect(template)} variant="secondary" size="sm">Deselect</Button>
-                ) : (
-                  <Button onClick={() => onTemplateSelect(template)} variant="primary" size="sm">Select</Button>
-                )}
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={isSelected(template)}
+                    onChange={(e) =>
+                      e.target.checked
+                        ? onTemplateSelect(template)
+                        : onTemplateDeselect(template)
+                    }
+                  />
+                  <span>{template.Name}</span>
+                </label>
               </div>
             ))
           ) : (
             <p className="text-sm text-gray-500">No matching templates found</p>
           )}
         </div>
+
       </PopoverContent>
     </Popover>
   );
-}
+  }
