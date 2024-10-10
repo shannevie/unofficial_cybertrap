@@ -91,8 +91,10 @@ export default function ScheduleScanForm({ onSubmit }: ScheduleScanFormProps) {
     e.preventDefault();
 
     const scanData = {
-      domain_id: selectedDomain?.ID, 
-      template_ids: selectedTemplates.map(template => template.ID), 
+      ID: '',
+      DomainID: selectedDomain?.ID,
+      Domain: selectedDomain?.Domain, 
+      TemplateIDs: selectedTemplates.map(template => template.ID), 
       scanDate: scanDate ? format(scanDate, 'yyyy-MM-dd') : null,
     };
     console.log('scan submitted: ', scanData);
@@ -104,22 +106,6 @@ export default function ScheduleScanForm({ onSubmit }: ScheduleScanFormProps) {
     setScanDate(null);
     // console.log('form submitted', selectedDomain);
 
-
-
-    // POST request to your API or backend for scheduling scans
-    // const response = await fetch('/api/scheduledscans', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify(scanData),
-    // });
-
-    // if (response.ok) {
-    //   console.log('Scan scheduled successfully');
-    // } else {
-    //   console.error('Error scheduling scan');
-    // }
 
       try {
         // POST request to your API
@@ -133,6 +119,7 @@ export default function ScheduleScanForm({ onSubmit }: ScheduleScanFormProps) {
   
         if (response.ok) {
           console.log('Scan scheduled successfully');
+          console.log(response);
           setSelectedDomain(null); // Reset form state
           setSelectedTemplates([]);
           setScanDate(null);
